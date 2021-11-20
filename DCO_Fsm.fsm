@@ -1,0 +1,899 @@
+/*%FSM<COMPILE "C:\Program Files (x86)\Steam\steamapps\common\Arma 3 Tools\FSMEditor\scriptedFSM.cfg, Veh_FSM">*/
+/*%FSM<HEAD>*/
+/*
+item0[] = {"_",0,250,-455.479370,-961.285156,-365.479431,-911.285217,0.000000,""};
+item1[] = {"FSM_not_running",4,218,-447.784760,-892.130615,-332.912567,-820.989258,0.000000,"FSM not running"};
+item2[] = {"Declaring_all_functions",2,4346,-488.691223,-784.943420,-251.145691,-702.155579,0.000000,"Declaring all functions needed"};
+item3[] = {"sleep",4,218,-352.742737,-488.690125,-262.742737,-438.690186,0.000000,"sleep"};
+item4[] = {"sleep",4,218,-21.281723,-214.949677,68.718277,-164.949554,0.000000,"sleep"};
+item5[] = {"",7,210,19.222595,-331.852234,27.222595,-323.852234,0.000000,""};
+item6[] = {"Executing_FSM_functions",2,250,-495.447876,-411.571777,-116.990570,-245.485168,0.000000,"Executing FSM functions for all eligble vehicles"};
+item7[] = {"fsm_already_runn",4,218,-265.811188,-961.860962,-175.811188,-911.860962,0.000000,"fsm already running"};
+item8[] = {"exit",1,250,-92.320129,-957.255005,-2.320099,-907.255005,0.000000,"exit"};
+item9[] = {"Declare_state",2,250,-267.346558,-882.024231,-177.346558,-832.024231,0.000000,"Declare state"};
+item10[] = {"sleep",4,218,-178.298035,-773.016724,-88.298035,-723.016724,0.000000,"sleep"};
+item11[] = {"_",8,218,-404.067383,-637.414001,-314.067383,-587.414001,0.000000,""};
+item12[] = {"feedback",2,250,-175.227386,-636.373169,-85.227356,-586.373169,0.000000,"feedback"};
+item13[] = {"EndCondition",4,218,-45.191116,-585.470825,44.808868,-535.470825,0.000000,"EndCondition"};
+item14[] = {"Feedback_1",2,250,-10.098808,-696.278076,79.901215,-646.278076,0.000000,"Feedback"};
+item15[] = {"_",8,218,-40.278759,-820.548279,49.721237,-770.548279,0.000000,""};
+link0[] = {0,1};
+link1[] = {0,7};
+link2[] = {1,9};
+link3[] = {2,11};
+link4[] = {3,6};
+link5[] = {4,5};
+link6[] = {5,6};
+link7[] = {6,4};
+link8[] = {6,13};
+link9[] = {7,8};
+link10[] = {9,10};
+link11[] = {10,2};
+link12[] = {11,12};
+link13[] = {12,3};
+link14[] = {13,14};
+link15[] = {14,15};
+link16[] = {15,8};
+globals[] = {0.000000,0,0,0,0,640,480,1,38,6316128,1,-570.472412,173.373718,-99.635071,-1106.223877,823,884,1};
+window[] = {2,-1,-1,-1,-1,947,208,1232,208,3,841};
+*//*%FSM</HEAD>*/
+class FSM
+{
+        fsmName = "Veh_FSM";
+        class States
+        {
+                /*%FSM<STATE "_">*/
+                class _
+                {
+                        name = "_";
+                        itemno = 0;
+                        init = /*%FSM<STATEINIT""">*/"_Minimum_Distance = 350;" \n
+                         "_DeBug = false;" \n
+                         "_refreshRate = 3;" \n
+                         "Params [""_Minimum_Distance"", ""_DeBug"", ""_refreshRate""];" \n
+                         "_time = time;" \n
+                         "_Running = (MissionNamespace GetVariable ""Tally_FSM_RUnning"");" \n
+                         "EndVehicleFSM_now = false;"/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                                /*%FSM<LINK "fsm_already_runn">*/
+                                class fsm_already_runn
+                                {
+                                        itemno = 7;
+                                        priority = 0.000000;
+                                        to="exit";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"_Running"/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                                /*%FSM<LINK "FSM_not_running">*/
+                                class FSM_not_running
+                                {
+                                        itemno = 1;
+                                        priority = 0.000000;
+                                        to="Declare_state";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"IsNil ""_Running"""/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                        };
+                };
+                /*%FSM</STATE>*/
+                /*%FSM<STATE "Declaring_all_functions">*/
+                class Declaring_all_functions
+                {
+                        name = "Declaring_all_functions";
+                        itemno = 2;
+                        init = /*%FSM<STATEINIT""">*/"Tally_Fnc_Reveal = {" \n
+                         "Params [""_Reciever"", ""_TargetArr""];" \n
+                         "Private _Side = (Side _Reciever);" \n
+                         "{_Reciever reveal [_x, (_Side knowsAbout _x)]} ForEach _TargetArr;" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_EndEvasionVeh = {" \n
+                         "params [""_Vehicle""];" \n
+                         "" \n
+                         "diag_log ""Ending EVASION"";" \n
+                         "private _Driver = (Driver _Vehicle);" \n
+                         "" \n
+                         "If 	((!IsNil ""_Driver"") 	&&" \n
+                         "	(alive _Driver)) 	then {" \n
+                         "								Private _Script = [(group _Driver)] spawn Tally_Fnc_ResetGroup;" \n
+                         "								waituntil {ScriptDone _Script};" \n
+                         "								{[_X, (_Vehicle GetVariable ""Cluster"")] spawn Tally_Fnc_Reveal} ForEach (Units (Group (Driver _Vehicle)));" \n
+                         "" \n
+                         "							};" \n
+                         "(Gunner _Vehicle) doWatch objNull;" \n
+                         "" \n
+                         "{deleteMarker _X} ForEach (_Vehicle GetVariable ""Markers"");" \n
+                         "" \n
+                         "			" \n
+                         "			_Vehicle SetVariable [""Cluster"", 		nil, true];" \n
+                         "			_Vehicle SetVariable [""Centro"", 		nil, true];" \n
+                         "			_Vehicle SetVariable [""Spacing"", 		nil, true];" \n
+                         "			_Vehicle SetVariable [""Positions"", 		nil, true];" \n
+                         "			_Vehicle SetVariable [""Areas"", 			nil, true];" \n
+                         "			_Vehicle SetVariable [""Markers"", 		nil, true];" \n
+                         "			_Vehicle SetVariable [""Evading"", 		nil, true];" \n
+                         "			_Vehicle SetVariable [""EvadePos"",		nil, true];" \n
+                         "			_Vehicle SetVariable [""timer"",			nil, true];" \n
+                         "			_Vehicle SetVariable [""MinDistEnemy"", 	nil, true];" \n
+                         "};" \n
+                         "" \n
+                         "Tally_Fnc_VehMarkers = {" \n
+                         "Params [""_Vehicle"", ""_Shape"", ""_Pos"", ""_Dir"", ""_Size"", ""_Color"", ""_Brush""];" \n
+                         "" \n
+                         "Private _MarkerName = Format [""Marker_%1"", (round(random 10000000))];" \n
+                         "Private _marker 	= createMarker [_MarkerName, _Pos];" \n
+                         "		(_Vehicle GetVariable ""Markers"") PushBackUnique _Marker;" \n
+                         "		" \n
+                         "		_marker setMarkerShape _Shape;" \n
+                         "		_marker setMarkerDir _Dir;" \n
+                         "		_marker setMarkerSize [_Size, _Size];" \n
+                         "		_marker setMarkerBrush _Brush;" \n
+                         "		_Marker setMarkerColor _Color;" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "Tally_Fnc_CalcAreaLoc = {" \n
+                         "params [""_OrigX"", ""_OrigY"", ""_Dir"", ""_Distance""];" \n
+                         "" \n
+                         "" \n
+                         "Private _NewX = ((sin _Dir) * _Distance) + _OrigX;" \n
+                         "Private _Newy = ((cos _Dir) * _Distance) + _OrigY;" \n
+                         "" \n
+                         "Private _SearchAreaPos = [_NewX,_NewY, 0];" \n
+                         "" \n
+                         "" \n
+                         "_SearchAreaPos};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_SearchAreas = {" \n
+                         "Params [""_area1pos"", ""_area1Size"", ""_Vehicle"", ""_Dir""];" \n
+                         "" \n
+                         "If (FSMD3Bugger) then {" \n
+                         "						[_Vehicle, ""ELLIPSE"", _area1pos, _Dir, _area1Size, ""ColorRed"", ""SolidBorder""] call Tally_Fnc_VehMarkers; " \n
+                         "						};" \n
+                         "Private _SearchAreaSize		= 	(_area1Size * 0.5);" \n
+                         "Private _Distance			=	(_area1Size * 1.6);" \n
+                         "" \n
+                         "Private _SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), _Dir, _Distance] call Tally_Fnc_CalcAreaLoc);" \n
+                         "								(_Vehicle GetVariable ""Areas"") PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
+                         "								" \n
+                         "						If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, ""ColorBlack"", ""SolidBorder""] call Tally_Fnc_VehMarkers}; " \n
+                         "						" \n
+                         "" \n
+                         "_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir + 45), _Distance] call Tally_Fnc_CalcAreaLoc);" \n
+                         "						(_Vehicle GetVariable ""Areas"") PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
+                         "" \n
+                         "						If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, ""ColorBlue"", ""SolidBorder""] call Tally_Fnc_VehMarkers}; " \n
+                         "" \n
+                         "" \n
+                         "_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir - 45), _Distance] call Tally_Fnc_CalcAreaLoc);" \n
+                         "						(_Vehicle GetVariable ""Areas"") PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
+                         "" \n
+                         "						If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, ""ColorGreen"", ""SolidBorder""] call Tally_Fnc_VehMarkers};" \n
+                         "		" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_Scan_Area = {" \n
+                         "Params [""_Pos"", ""_Size"", ""_Vehicle""];" \n
+                         "" \n
+                         "Private _PosAmount 	= 10;" \n
+                         "Private _Spacing 	= (_Size / _PosAmount);" \n
+                         "" \n
+                         "Private _StartPos = ([(_Pos select 0), (_Pos select 1), 225, (_Size * 1.272727)] Call Tally_Fnc_CalcAreaLoc);" \n
+                         "_StartPos = [	_StartPos select 	0, " \n
+                         "				_StartPos select 	1, " \n
+                         "									0];" \n
+                         "" \n
+                         "For ""_I"" from 1 to _PosAmount do {" \n
+                         "									[_StartPos, _Spacing, _PosAmount, _Vehicle] call Tally_Fnc_Ygrid;" \n
+                         "									 _StartPos = [((_StartPos select 0) + (_Spacing * 2)), " \n
+                         "													_StartPos select 1, " \n
+                         "																	 0];" \n
+                         "								  };" \n
+                         "_Vehicle SetVariable [""Spacing"", 		_Spacing, true];" \n
+                         "};" \n
+                         "" \n
+                         "Tally_Fnc_Ygrid = {" \n
+                         "params [""_Pos"", ""_Spacing"", ""_Final_Height"", ""_Vehicle""];" \n
+                         "Private _Center = (_Vehicle GetVariable ""Centro"");" \n
+                         "" \n
+                         "	for ""_i"" from 1 to _Final_Height do {" \n
+                         "											" \n
+                         "											If !(surfaceIsWater [(_Pos select 0), (_Pos select 1)]) then {" \n
+                         "											if !(terrainIntersect [_pos, _Center]) Then 	{" \n
+                         "											" \n
+                         "																											(_Vehicle GetVariable ""Positions"") PushbackUnique  _Pos;" \n
+                         "																											If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _Pos, 0, _Spacing, ""ColorOrange"", ""SolidBorder""] call Tally_Fnc_VehMarkers};" \n
+                         "																										  }};" \n
+                         "											" \n
+                         "											_Pos = [_Pos select 0, (_Pos select 1) + (_Spacing * 2), 1];" \n
+                         "								" \n
+                         "										};" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "Tally_Fnc_FilterPos = {" \n
+                         "Params [""_Vehicle"", ""_Center""];" \n
+                         "" \n
+                         "Diag_Log format [""%1 positions pre-selected"", (count (_Vehicle GetVariable ""Positions""))];" \n
+                         "" \n
+                         "If (FSMD3Bugger) then {[_Vehicle, ""ELLIPSE"", _Center, 0, 150, ""Colorblue"", ""SOLID""] call Tally_Fnc_VehMarkers};" \n
+                         "" \n
+                         "_FinalPositions = [(_Vehicle GetVariable ""Positions"")] Call Tally_Fnc_GetTopHeights;" \n
+                         "_Vehicle SetVariable [""Positions"", _FinalPositions, true];" \n
+                         "" \n
+                         "_FinalPositions = [(_Vehicle GetVariable ""Positions""), _Center] Call Tally_Fnc_GetClosePosArr;" \n
+                         "{(_Vehicle GetVariable ""Positions"") PushBackUnique _X} forEach _FinalPositions;" \n
+                         "" \n
+                         "" \n
+                         "If (FSMD3Bugger) then {" \n
+                         "								{" \n
+                         "								[_Vehicle, ""ELLIPSE"", _X, 0, 10, ""ColorRed"", ""SOLID""] call Tally_Fnc_VehMarkers;" \n
+                         "								} ForEach (_Vehicle GetVariable ""Positions"");" \n
+                         "						};" \n
+                         "						" \n
+                         "Diag_Log format [""%1 positions left"", (count (_Vehicle GetVariable ""Positions""))];" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetTopHeights = {" \n
+                         "Params [""_PosArr""];" \n
+                         "Private _NewArr = [];" \n
+                         "{_NewArr PushBackUnique _x} ForEach _PosArr;" \n
+                         "Private _PosCount = 0;" \n
+                         "" \n
+                         "For ""_I"" from 1 to 2 do {" \n
+                         "							Private _Counter = 0;" \n
+                         "							Private _AverageHeight = [_NewArr] call Tally_Fnc_GetAVGheight;" \n
+                         "							" \n
+                         "							{" \n
+                         "								If ((ceil (getTerrainHeightASL _x)) < _AverageHeight) Then {" \n
+                         "																								_NewArr DeleteAt _Counter;" \n
+                         "																								_PosCount = (_PosCount + 1);" \n
+                         "																							};" \n
+                         "								 " \n
+                         "								_Counter = (_Counter + 1);" \n
+                         "							} ForEach _NewArr;" \n
+                         "						 };" \n
+                         "Diag_Log format [""%1 positions deleted due to height"", (_PosCount)];" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "_NewArr};" \n
+                         "" \n
+                         "Tally_Fnc_GetClosePosArr = {" \n
+                         "Params [""_PosArr"", ""_Center""];" \n
+                         "Private _NewArr = [];" \n
+                         "Private _PosCount = 0;" \n
+                         "{_NewArr PushBackUnique _x} ForEach _PosArr;" \n
+                         "" \n
+                         "" \n
+                         "							Private _Counter = 0;" \n
+                         "							Private _AverageDistance = (Round ([_NewArr, _Center] call Tally_Fnc_GetAVG_Distance));" \n
+                         "							Diag_Log format [""Average Distance %1"", _AverageDistance];" \n
+                         "							" \n
+                         "							{" \n
+                         "								Private _Distance = (Round(_Center Distance2D _x));" \n
+                         "								" \n
+                         "								If (_Distance > _AverageDistance) Then {" \n
+                         "																								_NewArr DeleteAt _Counter;" \n
+                         "																						" \n
+                         "																								_PosCount = (_PosCount + 1);" \n
+                         "																					};" \n
+                         "								 " \n
+                         "								_Counter = (_Counter + 1);" \n
+                         "							} ForEach _NewArr;" \n
+                         "						 " \n
+                         "						  " \n
+                         "						  " \n
+                         "Diag_Log format [""%1 positions deleted due to Distance"", (_PosCount)];" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "_NewArr};" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetAVG_Distance = {" \n
+                         "Params [""_PosArr"", ""_Center""];" \n
+                         "" \n
+                         "Private _Distances = [];" \n
+                         "private _AverageDistance = 0;" \n
+                         "" \n
+                         "if (Count _PosArr > 1) then {" \n
+                         "								{" \n
+                         "											private _Dist = (_Center Distance2D _x);" \n
+                         "											If (TypeName _Dist == ""SCALAR"") then {_Distances Pushback _Dist};" \n
+                         "								" \n
+                         "								}forEach _PosArr;" \n
+                         "" \n
+                         "" \n
+                         "								If (Count _Distances > 0) then {_AverageDistance = ([_Distances, ""Tally_Fnc_GetAVG_Distance""] call Tally_Fnc_GetAVG)};" \n
+                         "							};" \n
+                         "" \n
+                         "If (IsNil ""_AverageDistance"") then {_AverageDistance = 0};" \n
+                         "" \n
+                         "_AverageDistance};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetAVGheight = {" \n
+                         "Params [""_PosArr""];" \n
+                         "Private _Heights = [];" \n
+                         "private _AverageHeight = 0;" \n
+                         "" \n
+                         "" \n
+                         "if (Count _PosArr > 1) then {" \n
+                         "								{" \n
+                         "										private _elevation = (round getTerrainHeightASL _x);" \n
+                         "										If (TypeName _elevation == ""SCALAR"") then {_Heights Pushback _elevation};" \n
+                         "										 " \n
+                         "								}forEach _PosArr;" \n
+                         "" \n
+                         "								If (Count _Heights > 0) then {_AverageHeight = (round ([_Heights, ""Tally_Fnc_GetAVGheight""] call Tally_Fnc_GetAVG))};" \n
+                         "							};" \n
+                         "" \n
+                         "If (IsNil ""_AverageHeight"") then {_AverageHeight = 0;};" \n
+                         "" \n
+                         "_AverageHeight};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetAVG = {" \n
+                         "_Caller_Function = ""Undefined"";" \n
+                         "params [""_Arr"", ""_Caller_Function""];" \n
+                         "Diag_Log format [""%1 called GetAVG function"", (_Caller_Function)];" \n
+                         "" \n
+                         "Private _NewArr = [];" \n
+                         "" \n
+                         "{" \n
+                         "				If (TypeName _X == ""SCALAR"") then {_NewArr Pushback _X};" \n
+                         "}ForEach _Arr;" \n
+                         "" \n
+                         "_Arr = _NewArr;" \n
+                         "" \n
+                         "private _Length = (Count _Arr);" \n
+                         "private _sum = 0;" \n
+                         "" \n
+                         "for ""_i"" from 0 to (_Length - 1) do " \n
+                         "									{_sum = ((_sum) + ((_Arr) select _i))};" \n
+                         "" \n
+                         "Private _Average = (floor (_sum / _Length));" \n
+                         "" \n
+                         "_Average};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_EvadeVEh = {" \n
+                         "Private _Minimum_Distance 	= 400; " \n
+                         "Private _DeBug = false;" \n
+                         "Params [""_Vehicle"", ""_Minimum_Distance"", ""_DeBug""];" \n
+                         "" \n
+                         "Private _Driver 				= (driver _Vehicle);" \n
+                         "Private _Evading = (_Vehicle getVariable ""Evading"");" \n
+                         "Private _Group				= (Group _Driver);" \n
+                         "private _Side				= (Side _Driver);" \n
+                         "Private _Timer				= (Time + 3);" \n
+                         "Private _Enemy    			= [_Minimum_Distance, _Driver] call Tally_Fnc_GetNearestEnemy;" \n
+                         "" \n
+                         "FSMD3Bugger = _DeBug;" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "If (Isnil ""_Enemy"")                                 		ExitWith {};" \n
+                         "If (Isnull _Enemy)                                 		ExitWith {};" \n
+                         "diag_log format [""side Vehicle %1 Has %2 TargetKnowledge"", _Vehicle, (_Side knowsAbout _Enemy)];" \n
+                         "If ((!((_Side knowsAbout _Enemy) > 0)) " \n
+                         "&& (!((_Group knowsAbout _Enemy) > 0)))               	ExitWith {diag_log format [""Side for Vehicle %1 does not know about near enemy"", _Vehicle];};" \n
+                         "private _EnemyDist	= (_Vehicle Distance2D _Enemy);" \n
+                         "If (!Alive _Enemy)                                 		ExitWith {diag_log format [""Vehicle %1 Has DEAD enemies"", _Vehicle];};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Private _EnAvgPos			= ([_Enemy, (Round(_Minimum_Distance * 0.5))] call Tally_Fnc_AVGclusterPOS);" \n
+                         "Private _EnemyCluster		= ([_Enemy, (Round(_Minimum_Distance * 0.5))] call Tally_Fnc_ClusterMembers);" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Private _EnemyDir 	= ((_Vehicle getRelDir _Enemy) + (Getdir _Vehicle));" \n
+                         "Private _evasionDir = ((_EnemyDir - 180) + 0);" \n
+                         "Private _GoDistance = ((_Minimum_Distance - (_Vehicle Distance2D _Enemy)) + (_Minimum_Distance / 5)); " \n
+                         "" \n
+                         "_Vehicle SetVariable [""Evading"", true, true];" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "If (_EnemyDist < 50) then {_evasionDir = (getDir _Vehicle)};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Private _dummy = ""B_Static_Designator_01_F"" createVehicleLocal [0,0,0];" \n
+                         "_dummy allowdammage false;" \n
+                         "hideObject _dummy;" \n
+                         "" \n
+                         "" \n
+                         "for ""_I"" from 0 to 3 do {" \n
+                         "							_dummy SetPos (GetPos _Vehicle);" \n
+                         "							sleep 0.02;" \n
+                         "						};" \n
+                         "" \n
+                         "_dummy SetDir _evasionDir;" \n
+                         "Waituntil {Sleep 0.02; (((Getdir _Dummy) == (_evasionDir)) or (Time > _Timer))};" \n
+                         "" \n
+                         "" \n
+                         "Private _EvasionPos = (_Dummy modelToWorld [0,_GoDistance ,0]);" \n
+                         "sleep 0.1;" \n
+                         "Deletevehicle _Dummy;" \n
+                         "" \n
+                         "" \n
+                         "[_Group] spawn Tally_Fnc_DeleteWP;" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "_Vehicle SetVariable [""Cluster"",		_EnemyCluster,									true];" \n
+                         "_Vehicle SetVariable [""Centro"",			_EnAvgPos,										true];" \n
+                         "_Vehicle SetVariable [""Positions"",		[], 											true];" \n
+                         "_Vehicle SetVariable [""Areas"", 			[], 											true];" \n
+                         "_Vehicle SetVariable [""Markers"", 		[], 											true];" \n
+                         "_Vehicle SetVariable [""timer"", 			(round((time) + (_Minimum_Distance / 5))), 		true];" \n
+                         "_Vehicle SetVariable [""MinDistEnemy"", 	_Minimum_Distance, 								true];" \n
+                         "" \n
+                         "Private _Script = [(getpos _Enemy), _Minimum_Distance, _Vehicle, _evasionDir] spawn Tally_Fnc_SearchAreas;" \n
+                         "Waituntil {ScriptDone _Script};" \n
+                         "{" \n
+                         "Private _arr = _x;" \n
+                         "_arr PushbackUnique _Vehicle;" \n
+                         "_Script =  _arr spawn Tally_Fnc_Scan_Area;" \n
+                         "Waituntil {ScriptDone _Script};" \n
+                         "} ForEach (_Vehicle GetVariable ""Areas"");" \n
+                         "_Script = [_Vehicle, _EnAvgPos] Spawn Tally_Fnc_FilterPos;" \n
+                         "Waituntil {ScriptDone _Script};" \n
+                         "" \n
+                         "Private _EvasionPos2 = (SelectRandom (_Vehicle GetVariable ""Positions""));" \n
+                         "If !(IsNil ""_EvasionPos2"") then {_EvasionPos = _EvasionPos2};" \n
+                         "_Vehicle SetVariable [""EvadePos"", 		_EvasionPos, true];" \n
+                         "" \n
+                         "_Group setBehaviourStrong ""AWARE"";" \n
+                         "" \n
+                         "_Driver DoMove _EvasionPos;" \n
+                         "" \n
+                         "{[_X, (_Vehicle GetVariable ""Cluster"")] spawn Tally_Fnc_Reveal} ForEach (Units (Group (Driver _Vehicle)));" \n
+                         "" \n
+                         "If (FSMD3Bugger) then {" \n
+                         "							[_Vehicle, ""ELLIPSE"", _EvasionPos, 0, 20, ""ColorKhaki"", ""Border""] call Tally_Fnc_VehMarkers;" \n
+                         "							[_Vehicle, ""ELLIPSE"", _EvasionPos, 0, 15, ""ColorBlack"", ""Border""] call Tally_Fnc_VehMarkers;" \n
+                         "							[_Vehicle, ""ELLIPSE"", _EvasionPos, 0, 10, ""ColorWhite"", ""Border""] call Tally_Fnc_VehMarkers;" \n
+                         "							[_Vehicle, ""ELLIPSE"", _EvasionPos, 0, 5,  ""ColorBlue"", ""Border""] call Tally_Fnc_VehMarkers;" \n
+                         "						};" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_Check_EvasionVeh_Conditions = {" \n
+                         "params [""_Vehicle""];" \n
+                         "" \n
+                         "if 	((IsNil ""_Vehicle"") " \n
+                         "or 	(IsNull _Vehicle)) exitWith {};" \n
+                         "" \n
+                         "Private _Evading 	= (_Vehicle getVariable ""Evading"");" \n
+                         "" \n
+                         "if 	(IsNil ""_Evading"")  exitWith {}; " \n
+                         "" \n
+                         "Private _TargetPos 			= (_Vehicle getVariable ""EvadePos"");" \n
+                         "Private _Minimum_Distance	= (_Vehicle getVariable ""MinDistEnemy"");" \n
+                         "Private _Timer 				= (_Vehicle getVariable ""timer"");" \n
+                         "private _Distance			= (_Vehicle Distance2D _TargetPos);" \n
+                         "private _Driver				= (Driver _Vehicle);" \n
+                         "Private _Enemy    			= ([(_Minimum_Distance * 1.5), _Driver] call Tally_Fnc_GetNearestEnemy);" \n
+                         "Private _EnemyDist			= (_Driver Distance2D _Enemy);" \n
+                         "Private _Radius				= (_Minimum_Distance / 10); " \n
+                         "" \n
+                         "" \n
+                         "If	(IsNil ""_Driver"") 			exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(IsNull _Driver) 			exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(!Alive _Driver) 			exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(!CanMove _Vehicle)			exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(crew _Vehicle IsEqualTo []) 	exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(_Distance < _Radius) 		exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(time > _Timer) 			exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "IF	(fuel _Vehicle == 0) 		exitWith {[_Vehicle] spawn Tally_Fnc_EndEvasionVeh};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "If ((_Distance > _Radius) " \n
+                         "&& {((velocityModelSpace _Vehicle) select 1) < 5}) then {" \n
+                         "															_Driver moveTo _TargetPos;" \n
+                         "															_Driver setBehaviourStrong ""AWARE"";" \n
+                         "															(Group _Driver) setSpeedMode ""FULL"";" \n
+                         "															sleep 3;" \n
+                         "															If ((((velocityModelSpace _Vehicle) select 1) < 1) && (!IsNil ""_Evading""))" \n
+                         "															then {_Driver DoMove _TargetPos};" \n
+                         "														};" \n
+                         "" \n
+                         "If (Alive (Gunner _Vehicle)) then 	{" \n
+                         "										Private _Taken = (_Vehicle GetVariable ""DaDa"");" \n
+                         "										" \n
+                         "										If (!Isnil ""_Taken"") exitWith {};" \n
+                         "										" \n
+                         "										_Vehicle SetVariable [""DaDa"", true, true];" \n
+                         "										" \n
+                         "										Private _Target = (SelectRandom (_Vehicle GetVariable ""Cluster""));" \n
+                         "										(Gunner _Vehicle) reveal [_Target, 4];" \n
+                         "										" \n
+                         "										sleep 1;" \n
+                         "										(Gunner _Vehicle) dofire _Target;" \n
+                         "										" \n
+                         "										" \n
+                         "										" \n
+                         "										_Vehicle SetVariable [""DaDa"", nil, true];" \n
+                         "									};" \n
+                         "" \n
+                         "												" \n
+                         "														" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "Tally_Fnc_ClusterMembers = {" \n
+                         "Params [""_Unit"", ""_Radius""];" \n
+                         "private _Side 	= (Side _Unit);" \n
+                         "Private _Pos 	= (GetPos _Unit);" \n
+                         "private _list 	= (nearestObjects [_Pos, [""land""], _Radius, true]);" \n
+                         "Private _NewList = [];" \n
+                         "" \n
+                         "	{				" \n
+                         "	if 	((Side _x) == (_Side))" \n
+                         "	then 	{" \n
+                         "			" \n
+                         "				_NewList PushBackUnique _X;" \n
+                         "			};" \n
+                         "			" \n
+                         "	}ForEach _list;" \n
+                         "diag_log format [""%1 enemy units in area"", (Count _NewList)];" \n
+                         "_NewList};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_AVGclusterPOS = {" \n
+                         "params [""_unit"", ""_Radius""];" \n
+                         "private _Side 	= (Side _Unit);" \n
+                         "Private _Pos 	= (GetPos _Unit);" \n
+                         "private _list 	= (nearestObjects [_Pos, [""land""], _Radius, true]);" \n
+                         "Private _Yarr 	= [];" \n
+                         "Private _Xarr 	= [];" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "{" \n
+                         "	if 	((Side _x) == (_Side))" \n
+                         "	then 	{" \n
+                         "			" \n
+                         "				Private _Xpos   = (round ((Getpos _x) select 0));" \n
+                         "				Private _Ypos   = (round ((Getpos _x) select 1));" \n
+                         "				_Yarr PushBackUnique _Ypos;" \n
+                         "				_Xarr PushBackUnique _Xpos;" \n
+                         "			};" \n
+                         "}ForEach _list;" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Private _Returnpos = [(round ([_Xarr, ""Tally_Fnc_AVGclusterPOS""] Call Tally_Fnc_GetAVG)), (round ([_Yarr, ""Tally_Fnc_AVGclusterPOS""] Call Tally_Fnc_GetAVG)), 0];" \n
+                         "If (Isnil ""_Returnpos"") then {" \n
+                         "								_Returnpos = _Pos;" \n
+                         "							};" \n
+                         "" \n
+                         "_Returnpos};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetNearestEnemy = {" \n
+                         "Private _Enemy = objnull; " \n
+                         "Params [""_Radius"", ""_Unit""];" \n
+                         "Private _pos 	= (GetPos _Unit);" \n
+                         "private _list 	= _pos nearObjects _Radius;" \n
+                         "Private _Side 	= (Side _Unit);" \n
+                         "private _Enemies = [];" \n
+                         "" \n
+                         "	{" \n
+                         "	if (_x iskindof ""Land"") then {" \n
+                         "									" \n
+                         "									" \n
+                         "									If ((side _x) in [west, east, Independent])" \n
+                         "									then{" \n
+                         "									" \n
+                         "									If (!((Side _x) == (_Side)))" \n
+                         "									then {" \n
+                         "									" \n
+                         "									Private _Otherside = (Side _X);" \n
+                         "									if !([_Side, _Otherside] call BIS_fnc_sideIsFriendly) " \n
+                         "									then {" \n
+                         "									" \n
+                         "									_Enemies PushbackUnique _x;" \n
+                         "									" \n
+                         "									}}}}}" \n
+                         "									ForEach _list;" \n
+                         "" \n
+                         "If ((count _Enemies) > 0) then {" \n
+                         "									_Enemy = [_Pos, _Enemies] call Tally_Fnc_GetNearestObject;" \n
+                         "								};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "_Enemy};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_VehEligbleFSM = {" \n
+                         "" \n
+                         "" \n
+                         "params [""_Vehicle""];" \n
+                         "Private _eligble = false;" \n
+                         "Private _Evading = (_Vehicle getVariable ""Evading"");" \n
+                         "" \n
+                         "" \n
+                         "if 	(!IsNil ""_Vehicle"" " \n
+                         "&& 	{!IsNull _Vehicle " \n
+                         "&& 	{Alive _Vehicle" \n
+                         "&& 	{_Vehicle Iskindof ""Land""" \n
+                         "&& 	{!(_Vehicle Iskindof ""man"")" \n
+                         "&& 	{!(crew _Vehicle IsEqualTo [])" \n
+                         "&& 	{Alive (driver _Vehicle)" \n
+                         "&& 	{CanMove _Vehicle" \n
+                         "&& 	{IsNil ""_Evading""" \n
+                         "&&	{((Count (AllTurrets [_Vehicle, false])) > 0)" \n
+                         "&&	{!(fuel _Vehicle == 0)" \n
+                         "	}}}}}}}}}}) " \n
+                         "				then {_eligble = true};" \n
+                         "" \n
+                         "_eligble};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetNearestObject = {" \n
+                         "Params [""_Pos"", ""_ObjArr""];" \n
+                         "Private _Distance1		= 100000;" \n
+                         "Private _Distance2		= 100000;" \n
+                         "Private _Nearest		= 0;" \n
+                         "" \n
+                         "{" \n
+                         "	_Distance2 = (_Pos Distance2d _x);" \n
+                         "	If (_Distance2 < _Distance1) then {" \n
+                         "	" \n
+                         "										_Distance1 	= _Distance2;" \n
+                         "										_Nearest	= _x;" \n
+                         "										" \n
+                         "									Sleep 0.1}} ForEach _ObjArr;" \n
+                         "" \n
+                         "" \n
+                         "_Nearest};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_DeleteWP = {" \n
+                         "Params [""_Group""];" \n
+                         "If ((count waypoints _group) > 0) then {" \n
+                         "										for ""_i"" from count waypoints _group - 1 to 0 step -1 do" \n
+                         "													" \n
+                         "													{deleteWaypoint [_group, _i]};" \n
+                         "													{deleteWaypoint _x}ForEach (waypoints _Group);" \n
+                         "										};" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_ResetGroup = {" \n
+                         "Params [""_Group""];" \n
+                         "" \n
+                         "Private _NewGroup = createGroup (side _Group);" \n
+                         " " \n
+                         "" \n
+                         "{ [_x] joinSilent _NewGroup } forEach (units _Group);" \n
+                         "{ [_x] joinSilent _NewGroup } forEach (units _Group);" \n
+                         "DeleteGroup _Group;" \n
+                         "_NewGroup deleteGroupWhenEmpty true;" \n
+                         "" \n
+                         "_NewGroup};"/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                                /*%FSM<LINK "_">*/
+                                class _
+                                {
+                                        itemno = 11;
+                                        priority = 0.000000;
+                                        to="feedback";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/""/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                        };
+                };
+                /*%FSM</STATE>*/
+                /*%FSM<STATE "Executing_FSM_functions">*/
+                class Executing_FSM_functions
+                {
+                        name = "Executing_FSM_functions";
+                        itemno = 6;
+                        init = /*%FSM<STATEINIT""">*/"_time = time;" \n
+                         "Tally_VEh_FSM_iteration_Done = false;" \n
+                         "[_Minimum_Distance, _DeBug] spawn {" \n
+                         "Params [""_Minimum_Distance"", ""_DeBug""];" \n
+                         "				{" \n
+                         "					" \n
+                         "					If ([_X] call Tally_Fnc_VehEligbleFSM) then 	{" \n
+                         "																	_Script = [_x, _Minimum_Distance, _DeBug] spawn Tally_Fnc_EvadeVEh;" \n
+                         "																	waituntil {sleep 0.02; (Scriptdone _Script)};" \n
+                         "																	sleep 0.1;" \n
+                         "																};" \n
+                         "					If (_x getVariable ""Evading"") 			then 	{											" \n
+                         "																		_Script = [_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
+                         "																		waituntil {sleep 0.02; (Scriptdone _Script)};" \n
+                         "																	};" \n
+                         "					sleep 0.02;" \n
+                         "				} " \n
+                         "				ForEach vehicles;" \n
+                         "" \n
+                         "" \n
+                         "Tally_VEh_FSM_iteration_Done = true;" \n
+                         "};"/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                                /*%FSM<LINK "EndCondition">*/
+                                class EndCondition
+                                {
+                                        itemno = 13;
+                                        priority = 0.000000;
+                                        to="Feedback_1";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"EndVehicleFSM_now"/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                                /*%FSM<LINK "sleep">*/
+                                class sleep
+                                {
+                                        itemno = 4;
+                                        priority = 0.000000;
+                                        to="Executing_FSM_functions";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"((time - _time > _refreshRate) && (Tally_VEh_FSM_iteration_Done))"/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                        };
+                };
+                /*%FSM</STATE>*/
+                /*%FSM<STATE "exit">*/
+                class exit
+                {
+                        name = "exit";
+                        itemno = 8;
+                        init = /*%FSM<STATEINIT""">*/"Diag_Log ""Double execution of FSM blocked"";"/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                        };
+                };
+                /*%FSM</STATE>*/
+                /*%FSM<STATE "Declare_state">*/
+                class Declare_state
+                {
+                        name = "Declare_state";
+                        itemno = 9;
+                        init = /*%FSM<STATEINIT""">*/"MissionNamespace setVariable [""Tally_FSM_RUnning"", true, true];"/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                                /*%FSM<LINK "sleep">*/
+                                class sleep
+                                {
+                                        itemno = 10;
+                                        priority = 0.000000;
+                                        to="Declaring_all_functions";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"time - _time > 1"/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                        };
+                };
+                /*%FSM</STATE>*/
+                /*%FSM<STATE "feedback">*/
+                class feedback
+                {
+                        name = "feedback";
+                        itemno = 12;
+                        init = /*%FSM<STATEINIT""">*/"Diag_Log ""Dragon_Company_Veh_Withdraw_FSM has initiated"";" \n
+                         "" \n
+                         "if (_DeBug) then {SystemChat ""Dragon_Company_Veh_Withdraw_FSM has initiated""};" \n
+                         ""/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                                /*%FSM<LINK "sleep">*/
+                                class sleep
+                                {
+                                        itemno = 3;
+                                        priority = 0.000000;
+                                        to="Executing_FSM_functions";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"time - _time > 5"/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                        };
+                };
+                /*%FSM</STATE>*/
+                /*%FSM<STATE "Feedback_1">*/
+                class Feedback_1
+                {
+                        name = "Feedback_1";
+                        itemno = 14;
+                        init = /*%FSM<STATEINIT""">*/"Diag_Log ""Dragon_Company_Veh_Withdraw_FSM has been terminated"";" \n
+                         "" \n
+                         "if (_DeBug) then {SystemChat ""Dragon_Company_Veh_Withdraw_FSM has been terminated""};" \n
+                         ""/*%FSM</STATEINIT""">*/;
+                        precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+                        class Links
+                        {
+                                /*%FSM<LINK "_">*/
+                                class _
+                                {
+                                        itemno = 15;
+                                        priority = 0.000000;
+                                        to="exit";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/""/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
+                        };
+                };
+                /*%FSM</STATE>*/
+        };
+        initState="_";
+        finalStates[] =
+        {
+                "exit",
+        };
+};
+/*%FSM</COMPILE>*/
