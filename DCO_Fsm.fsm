@@ -311,7 +311,7 @@ class FSM
                          "Params [""_PosArr"", ""_Center""];" \n
                          "" \n
                          "Private _Distances = [];" \n
-                         "private _AverageDistance = 0;" \n
+                         "private _AverageDistance = 1000;" \n
                          "" \n
                          "if (Count _PosArr > 1) then {" \n
                          "								{" \n
@@ -324,7 +324,7 @@ class FSM
                          "								If (Count _Distances > 0) then {_AverageDistance = ([_Distances, ""Tally_Fnc_GetAVG_Distance""] call Tally_Fnc_GetAVG)};" \n
                          "							};" \n
                          "" \n
-                         "If (IsNil ""_AverageDistance"") then {_AverageDistance = 0};" \n
+                         "If (IsNil ""_AverageDistance"") then {_AverageDistance = 1000};" \n
                          "" \n
                          "_AverageDistance};" \n
                          "" \n
