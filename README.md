@@ -4,7 +4,11 @@ A small FSM function for arma 3,
 
 Will make any armed vehicle avoid driving into a known enemy and try to find highground in the nearby area, no dependencies.
 
-To Init the FSM place ths into Init.sqf (InitServer for Multiplayer).
+To Init the FSM do:
+
+1) Place the file in the mission folder.
+2) write the following into "Init.sqf"   (Or "InitServer.sqf" for MP)
+
 [300, false, 1] execFSM "DCO_Fsm.fsm";
 
 [300,   = the radius that the vehicle will avoid the enemy group by. Increase or decrease as you see fit
