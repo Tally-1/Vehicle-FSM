@@ -8,7 +8,7 @@ Will make any armed vehicle avoid driving into a known enemy and try to find hig
 
 To Init the FSM do:
 
-1) Place the file in the mission folder.
+1) Place the "DCO_Fsm.fsm" in the mission folder.
 2) write the following into "Init.sqf"   (Or "InitServer.sqf" for MP)
 
 [300, false, 1] execFSM "DCO_Fsm.fsm";
@@ -24,3 +24,7 @@ false,  = Debug-Mode. (If true will create markers indicating all desirable posi
 
 
 1]      = refresh-rate for the FSM in seconds. Lower number leads to better reaction-time, but may affect overall performance.
+
+
+------------------------------------------------------------------
+The file named "DevFile.sqf" is only for reviewing the functions declared in the FSM file.
