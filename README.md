@@ -1,4 +1,7 @@
 # Vehicle-FSM
+
+BUilt by [P] Tally (Leo Hartgen) On behalf of Dragon Company.
+
 Vehicle AI for A3
 A small FSM function for arma 3,
 
