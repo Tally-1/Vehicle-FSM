@@ -14,6 +14,11 @@ To Init the FSM do:
 
 [300, false, 1] execFSM "DCO_Fsm.fsm";
 
-[300,   = the radius that the vehicle will avoid the enemy group by. Increase or decrease as you see fit
+
+[300,   = the radius that the vehicle will avoid the enemy group by. Increase or decrease as you see fit.
+
+
 false,  = Debug-Mode. (If true will create markers indicating all desirable positions considered by the AI)
+
+
 1]      = refresh-rate for the FSM in seconds. Lower number leads to better reaction-time, but may affect performance.
