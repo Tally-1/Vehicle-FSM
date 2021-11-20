@@ -14,6 +14,9 @@ To Init the FSM do:
 [300, false, 1] execFSM "DCO_Fsm.fsm";
 
 
+-------------------------------------------------------------------
+EXPLANATION:
+
 [300,   = the radius that the vehicle will avoid the enemy group by. Increase or decrease as you see fit.
 
 
