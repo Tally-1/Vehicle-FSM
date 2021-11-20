@@ -23,4 +23,4 @@ EXPLANATION:
 false,  = Debug-Mode. (If true will create markers indicating all desirable positions considered by the AI)
 
 
-1]      = refresh-rate for the FSM in seconds. Lower number leads to better reaction-time, but may affect performance.
+1]      = refresh-rate for the FSM in seconds. Lower number leads to better reaction-time, but may affect overall performance.
