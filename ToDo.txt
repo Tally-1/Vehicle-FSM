@@ -1,0 +1,22 @@
+Future changes needed. (feel free to contribute here)
+
+1) currently the FSM runs on the server locally and also declares all functions locally. 
+   This might cause an issue when playing multiplayer and some of the groups are not local to the server.
+   Hence it is necesary to declare these functions as global variables and then call them on the owner machine(client) of each vehicle.
+   Doing this would also require a filter function to weed out player-units.
+
+2) A function that would allow for the "Crew-group" to analyse enemy units in the area they have avoided and compare the capacity of said enemies with their
+   own capacity to combat the enemy close range.
+   In other words, a function that makes the AI decide wether or not to push.
+   
+ 3) Improve the position selector by removing the current square-form of the areas that gets analysed to a 180* half-circle search area outside of min-range area.
+    the width of this search area should be 1/2 of the min-range.
+    Doing this would require several iterations considering how heavy "LineIntersects" is.
+    ((7 x for degrees between 270 and 359) && (7 x for degrees between 0 and 90)) degrees are relative.
+    doing it like this should take 1.4 seconds in processing time (will have to put in some sleep to avoid performance issues, I am thinking 0.1 s should be enough).
+
+4)  A Crew FSM baked into this FSM that does the following; 
+                                                              A)  Have AI repair broken engines / flat tires. Refuel when tank is empty. while also giving cover-fire.
+                                                              B)  If gunner is dead have Driver switch between roles, take into consideration if commander is alive.
+                                                              C)  If there are 2 friendly vehicles within a certain distance that both only have 1 crew-member left then
+                                                                  have them join forces / group.
