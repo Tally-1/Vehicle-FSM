@@ -5,6 +5,7 @@ Built by [P] Tally (Leo Hartgen) On behalf of Dragon Company.
 A small FSM function for arma 3,
 
 Will make any armed vehicle avoid driving into a known enemy and try to find highground in the nearby area, no dependencies.
+Can be seen in the arma 3 tools for a visual display of the function.
 
 To Init the FSM do:
 
@@ -12,6 +13,11 @@ To Init the FSM do:
 2) write the following into "Init.sqf"   (Or "InitServer.sqf" for MP)
 
 [300, false, 1] execFSM "DCO_Fsm.fsm";
+
+
+To end the FSM ingame pass the following line in script or in debug-consoloe:
+
+EndVehicleFSM_now true;
 
 
 -------------------------------------------------------------------
