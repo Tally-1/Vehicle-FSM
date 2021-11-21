@@ -15,7 +15,7 @@ To Init the FSM do:
 [300, false, 1] execFSM "DCO_Fsm.fsm";
 
 
-To end the FSM ingame pass the following line in script or in debug-consoloe:
+To end the FSM ingame pass the following argument in script or in debug-consoloe:
 
 EndVehicleFSM_now true;
 
