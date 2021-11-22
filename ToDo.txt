@@ -14,6 +14,7 @@ Future changes needed. (feel free to contribute here)
     Doing this would require several iterations considering how heavy "LineIntersects" is.
     ((7 x for degrees between 270 and 359) && (7 x for degrees between 0 and 90)) degrees are relative.
     doing it like this should take 1.4 seconds in processing time (will have to put in some sleep to avoid performance issues, I am thinking 0.1 s should be enough).
+    It would also increase the amount of potential positions from 300 to 1400++.
 
 4)  A Crew FSM baked into this FSM that does the following; 
                                                               A)  Have AI repair broken engines / flat tires. Refuel when tank is empty. while also giving cover-fire.
