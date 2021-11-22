@@ -17,7 +17,7 @@ To Init the FSM do:
 
 To end the FSM ingame pass the following argument in script or in debug-consoloe:
 
-EndVehicleFSM_now true;
+EndVehicleFSM_now = true;
 
 
 -------------------------------------------------------------------
