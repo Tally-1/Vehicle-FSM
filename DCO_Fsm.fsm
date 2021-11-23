@@ -919,7 +919,7 @@ class FSM
                         name = "Feedback_1";
                         itemno = 14;
                         init = /*%FSM<STATEINIT""">*/"Diag_Log ""DCO_FSM has been terminated"";" \n
-                         "if (_DeBug) then {SystemChat ""Dragon_Company_Veh_Withdraw_FSM has been terminated""};" \n
+                         "if (_DeBug) then {SystemChat ""DCO.FSM has been terminated""};" \n
                          "MissionNamespace setVariable [""Tally_FSM_RUnning"", nil, true];" \n
                          ""/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
