@@ -7,18 +7,21 @@ item2[] = {"Declaring_all_functions",2,250,-509.914093,-776.690063,-272.368530,-
 item3[] = {"sleep",4,218,-434.686584,-456.030518,-344.686584,-406.030579,0.000000,"sleep"};
 item4[] = {"sleep",4,218,-26.469467,-288.876068,63.530533,-238.875946,0.000000,"sleep"};
 item5[] = {"",7,210,14.034729,-141.697815,22.034729,-133.697815,0.000000,""};
-item6[] = {"Executing_FSM_functions",2,250,-575.858948,-346.724121,-197.401642,-180.637512,0.000000,"Executing FSM functions for all eligble vehicles"};
+item6[] = {"Executing_FSM_functions",2,250,-575.858948,-346.724121,-197.401642,-180.637512,0.000000,"Executing FSM functions for all eligble vehicles" \n "" \n "Checkout 'Devfile.sqf' To see all functions / code used."};
 item7[] = {"FSM_already_runn",4,218,-219.828339,-1169.373657,-83.845428,-1093.434448,0.000000,"FSM already running"};
-item8[] = {"exit",1,250,114.013367,-1156.514160,204.013397,-1106.514282,0.000000,"exit"};
+item8[] = {"exit",1,250,116.966492,-1156.514160,206.966522,-1106.514282,0.000000,"exit"};
 item9[] = {"Declare_state",2,250,-438.308624,-999.929077,-348.308624,-949.929077,0.000000,"Declare state"};
 item10[] = {"sleep",4,218,-437.688751,-879.131104,-347.688751,-829.131104,0.000000,"sleep"};
 item11[] = {"true",8,218,-434.722595,-638.593079,-344.722595,-588.593079,0.000000,"true"};
 item12[] = {"feedback",2,250,-434.264252,-532.616943,-344.264282,-482.616943,0.000000,"feedback"};
-item13[] = {"EndCondition",4,218,116.574257,-510.365356,206.574249,-460.365356,0.000000,"EndCondition"};
-item14[] = {"Feedback_1",2,250,116.536324,-662.208862,206.536346,-612.208862,0.000000,"Feedback"};
-item15[] = {"true",8,218,115.714767,-905.833496,205.714767,-855.833496,0.000000,"true"};
+item13[] = {"EndCondition",4,218,116.574257,-510.365356,206.574249,-427.530273,0.000000,"EndCondition"};
+item14[] = {"Feedback_1",2,250,116.823433,-742.144836,206.823456,-692.144836,0.000000,"Feedback"};
+item15[] = {"true",8,218,117.289719,-956.827026,207.289719,-906.827087,0.000000,"true"};
 item16[] = {"",7,210,-391.297516,-140.677734,-383.297516,-132.677734,0.000000,""};
-item17[] = {"MIght_need_Multiplayer",-1,250,-991.431885,-283.007385,-606.910828,-189.184326,0.000000,"MIght need Multiplayer compatibility. Locality might be a issue"};
+item17[] = {"MIght_need_Multiplayer",-1,250,-1072.988037,-314.517761,-606.910828,-189.184326,0.000000,"MIght need Multiplayer compatibility. Locality might be a issue"};
+item18[] = {"Author___Leo_Hartgen",-1,250,95.052429,-265.517151,366.967041,-108.478088,0.000000,"Author:  Leo Hartgen *[P] Tally*" \n "" \n "Github:  https://github.com/Tally-1" \n "" \n "Discord Tally#8779" \n "" \n "Written on behalf of Dragon Company" \n ""};
+item19[] = {"",7,210,158.355835,-614.620667,166.355835,-606.620667,0.000000,""};
+item20[] = {"Produced_by_Dragon",-1,250,-589.265137,-1570.737061,-135.809814,-1285.335571,0.000000,"Produced by Dragon Company." \n "" \n "Join our discord and let us know what" \n "you would like to see next!" \n "" \n "https://discord.gg/bRTqWJzeza" \n ""};
 version=1;
 class LayoutItems
 {
@@ -31,6 +34,28 @@ class LayoutItems
 			lStyle=1;
 		};
 		BgColor=12254960;
+	};
+	class Item18
+	{
+		class ItemInfo
+		{
+			FontFace="Arial";
+			FontHeight=12;
+			lStyle=1;
+			Align=0;
+		};
+		BgColor=15465915;
+	};
+	class Item20
+	{
+		class ItemInfo
+		{
+			FontFace="Arial";
+			FontHeight=20;
+			lStyle=1;
+			Align=0;
+		};
+		BgColor=15465915;
 	};
 };
 link0[] = {0,1};
@@ -47,12 +72,13 @@ link10[] = {9,10};
 link11[] = {10,2};
 link12[] = {11,12};
 link13[] = {12,3};
-link14[] = {13,14};
+link14[] = {13,19};
 link15[] = {14,15};
 link16[] = {15,8};
 link17[] = {16,6};
-globals[] = {0.000000,0,0,0,0,640,480,1,40,6316128,1,-1148.753906,544.285645,-48.019775,-1260.861816,1234,884,1};
-window[] = {2,-1,-1,-1,-1,973,234,1258,234,3,1252};
+link18[] = {19,14};
+globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1259.500244,545.090332,-330.500366,-1623.254150,1234,884,1};
+window[] = {2,-1,-1,-32000,-32000,791,52,1076,52,3,1252};
 *//*%FSM</HEAD>*/
 class FSM
 {
@@ -824,7 +850,7 @@ class FSM
                 {
                         name = "exit";
                         itemno = 8;
-                        init = /*%FSM<STATEINIT""">*/"Diag_Log ""Double execution of FSM blocked"";"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/""/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
