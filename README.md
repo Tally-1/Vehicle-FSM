@@ -2,6 +2,9 @@
 
 Built by [P] Tally (Leo Hartgen) On behalf of Dragon Company.
 
+Show support by hopping into the DOC discord server and say hello!
+https://discord.gg/bRTqWJzeza
+
 A small FSM function for arma 3,
 
 Will make any armed vehicle avoid driving into a known enemy and try to find highground in the nearby area, no dependencies.
