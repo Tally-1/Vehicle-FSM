@@ -1,6 +1,6 @@
 # Vehicle-FSM
 
-Built by [P] Tally (Leo Hartgen) On behalf of Dragon Company.
+Built by [P] Tally On behalf of Dragon Company.
 
 Show support by hopping into the DOC discord server and say hello!
 https://discord.gg/bRTqWJzeza
