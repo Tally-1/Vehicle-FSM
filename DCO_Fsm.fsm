@@ -3,7 +3,7 @@
 /*
 item0[] = {"Init_FSM",0,250,-436.614563,-1259.584595,-346.614624,-1209.584473,0.000000,"Init FSM"};
 item1[] = {"FSM_not_running",4,218,-450.142822,-1144.447144,-335.270630,-1073.305664,0.000000,"FSM not running"};
-item2[] = {"Declaring_all_functions",2,250,-509.914093,-776.690063,-272.368530,-693.902222,0.000000,"Declaring all functions needed"};
+item2[] = {"Declaring_all_functions",2,4346,-509.914093,-776.690063,-272.368530,-693.902222,0.000000,"Declaring all functions needed"};
 item3[] = {"sleep",4,218,-434.686584,-456.030518,-344.686584,-406.030579,0.000000,"sleep"};
 item4[] = {"sleep",4,218,-26.469467,-288.876068,63.530533,-238.875946,0.000000,"sleep"};
 item5[] = {"",7,210,14.034729,-141.697815,22.034729,-133.697815,0.000000,""};
@@ -13,7 +13,7 @@ item8[] = {"exit",1,250,116.966492,-1156.514160,206.966522,-1106.514282,0.000000
 item9[] = {"Declare_state",2,250,-438.308624,-999.929077,-348.308624,-949.929077,0.000000,"Declare state"};
 item10[] = {"sleep",4,218,-437.688751,-879.131104,-347.688751,-829.131104,0.000000,"sleep"};
 item11[] = {"true",8,218,-434.722595,-638.593079,-344.722595,-588.593079,0.000000,"true"};
-item12[] = {"feedback",2,4346,-434.264252,-532.616943,-344.264282,-482.616943,0.000000,"feedback"};
+item12[] = {"feedback",2,250,-434.264252,-532.616943,-344.264282,-482.616943,0.000000,"feedback"};
 item13[] = {"EndCondition",4,218,116.574257,-510.365356,206.574249,-427.530273,0.000000,"EndCondition"};
 item14[] = {"Feedback_1",2,250,116.823433,-742.144836,206.823456,-692.144836,0.000000,"Feedback"};
 item15[] = {"true",8,218,117.289719,-956.827026,207.289719,-906.827087,0.000000,"true"};
@@ -77,8 +77,8 @@ link15[] = {14,15};
 link16[] = {15,8};
 link17[] = {16,6};
 link18[] = {19,14};
-globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1744.434814,1102.119507,439.413330,-1599.773438,1234,884,1};
-window[] = {2,-1,-1,-1,-1,921,182,1206,182,3,1252};
+globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1353.352295,711.036011,-347.968140,-1826.833008,1234,884,1};
+window[] = {2,-1,-1,-32000,-32000,947,208,1232,208,3,1252};
 *//*%FSM</HEAD>*/
 class FSM
 {
@@ -98,14 +98,9 @@ class FSM
                          "_Running = (MissionNamespace GetVariable ""Tally_FSM_RUnning"");" \n
                          "EndVehicleFSM_now = false;" \n
                          "" \n
-                         "deathGroup = createGroup civilian;" \n
                          "VehMinimumDistance 		= _Minimum_Distance;" \n
-                         "Version						= 0.95;" \n
-                         "AreaScan						= false;" \n
                          "FSMD3Bugger					= _DeBug;" \n
-                         "iterationTimer				= _refreshRate;" \n
-                         "HintTimer					= 180;" \n
-                         "TenSecondTasks				= 0;"/*%FSM</STATEINIT""">*/;
+                         "iterationTimer				= _refreshRate;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -139,7 +134,65 @@ class FSM
                 {
                         name = "Declaring_all_functions";
                         itemno = 2;
-                        init = /*%FSM<STATEINIT""">*/"Tally_Fnc_Reveal = {" \n
+                        init = /*%FSM<STATEINIT""">*/"AreaScan = false;" \n
+                         "Version	 = 0.97;" \n
+                         "deathGroup = createGroup civilian;" \n
+                         "" \n
+                         "Tally_Fnc_TaskManager = {" \n
+                         "Private _Timer				= 180;" \n
+                         "Private _TenSecondTasks		= 0;" \n
+                         "" \n
+                         "					{" \n
+                         "					" \n
+                         "						If ([_X] call Tally_Fnc_VehEligbleFSM) then 	{" \n
+                         "																		private _Vehicle = _X;" \n
+                         "																		[_Vehicle, VehMinimumDistance, FSMD3Bugger] spawn Tally_Fnc_EvadeVEh;" \n
+                         "																		sleep 0.1;" \n
+                         "																	" \n
+                         "																	};" \n
+                         "						If (_x getVariable ""Evading""" \n
+                         "						&&{(_x getVariable ""ready"")" \n
+                         "						&&{true }}) 	then 	{													" \n
+                         "																			" \n
+                         "																			[_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
+                         "																			sleep 0.1;" \n
+                         "																			" \n
+                         "																		};" \n
+                         "					sleep 0.05;" \n
+                         "					} ForEach vehicles;" \n
+                         "					" \n
+                         "					if (time > _Timer) then	{" \n
+                         "												_Timer = time + 180;" \n
+                         "												If(FSMD3Bugger)then{" \n
+                         "																		hint (parsetext format[""DCO vehicle FSM: <br/>Version %1"", (Version)]);" \n
+                         "																	};" \n
+                         "												" \n
+                         "											};" \n
+                         "					" \n
+                         "				if (time > _TenSecondTasks) then 	{" \n
+                         "														{						" \n
+                         "														if !(_X == deathGroup)" \n
+                         "														then 	{" \n
+                         "																	if(Units _X IsEqualTo [] " \n
+                         "																	or IsNull _X)" \n
+                         "																	then{" \n
+                         "																			deleteGroup _X;" \n
+                         "																		};" \n
+                         "																};" \n
+                         "														}ForEach AllGroups;" \n
+                         "													" \n
+                         "														{[_X] call Tally_Fnc_AddEh}ForEach Vehicles;" \n
+                         "														" \n
+                         "														_TenSecondTasks = time + 10;" \n
+                         "														 " \n
+                         "														" \n
+                         "													" \n
+                         "													};" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_Reveal = {" \n
                          "Params [""_Reciever"", ""_TargetArr""];" \n
                          "Private _Side = (Side _Reciever);" \n
                          "{_Reciever reveal [_x, (_Side knowsAbout _x)]} ForEach _TargetArr;" \n
@@ -303,6 +356,9 @@ class FSM
                          "								 };" \n
                          "	}" \n
                          "	};" \n
+                         "" \n
+                         "If(_typeOfVehicle == ""unknown"")then{[""Could not categorize vehicle, possible mod. This might lead to issues with the threat -assesment""] call debugMessage};" \n
+                         "" \n
                          "					   " \n
                          "_typeOfVehicle" \n
                          "};" \n
@@ -532,18 +588,18 @@ class FSM
                          "" \n
                          "Tally_Fnc_3Dmarkers = {" \n
                          "" \n
-                         "{" \n
                          "" \n
-                         "" \n
-                         "[""Draw3D"", {" \n
+                         "addMissionEventHandler [""Draw3D"", {" \n
                          "If (FSMD3Bugger) then 	{" \n
                          "							{" \n
                          "								If (_x getVariable ""Evading"")then {" \n
                          "								private _ActionText = (_x getVariable ""currentAction"");" \n
                          "								private _Text	 	= """";" \n
+                         "								private _Damage 	= (Getdammage _x);" \n
+                         "								private _Health 	= 1 - _Damage;" \n
                          "								if (!IsNil ""_ActionText"") then {_Text = _ActionText;};" \n
                          "								" \n
-                         "								_Color = [1,1,1,0.8];" \n
+                         "								_Color = [_Damage,_Health,0,1];" \n
                          "								_S1ze = 1;" \n
                          "								_alpha = 0.4;" \n
                          "								_angle = 0; " \n
@@ -555,12 +611,10 @@ class FSM
                          "							" \n
                          "							} forEach Vehicles;" \n
                          "						}; " \n
-                         "}] remoteExec [""addMissionEventHandler"", _X, true];" \n
+                         "}];" \n
                          "" \n
                          "" \n
-                         "" \n
-                         "" \n
-                         "[""Draw3D"", {" \n
+                         "addMissionEventHandler [""Draw3D"", {" \n
                          "Private _Color = [1,0,0,1];" \n
                          "Private _S1ze = 1;" \n
                          "Private _alpha = 0.4;" \n
@@ -586,21 +640,19 @@ class FSM
                          "							} forEach Vehicles;" \n
                          "						};" \n
                          "" \n
-                         "}] remoteExec [""addMissionEventHandler"", _X, true];" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "}ForEach allPlayers;" \n
-                         "" \n
-                         "" \n
+                         "}];" \n
                          "" \n
                          "};" \n
                          "" \n
-                         "" \n
-                         "" \n
                          "systemChat ""DevFile read."";" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "Tally_Fnc_EvadeVEh = {" \n
                          "" \n
                          "Private _Minimum_Distance 		= 400; " \n
@@ -615,6 +667,8 @@ class FSM
                          "Private _Group					= (Group _Driver);" \n
                          "private _Side					= (Side _Driver);" \n
                          "Private _Timer					= (Time + 3);" \n
+                         "private _DataChecked			= _Vehicle GetVariable ""Viable"";" \n
+                         "Private _Repairing				= (_Vehicle GetVariable ""repairing"");" \n
                          "" \n
                          "if(_Minimum_Distance == VehMinimumDistance)" \n
                          "then{" \n
@@ -629,10 +683,13 @@ class FSM
                          "missionNameSpace setVariable [""FSMD3Bugger"", _DeBug, true];" \n
                          "" \n
                          "" \n
-                         "If (Isnil ""_Vehicle"")ExitWith {};" \n
-                         "If (Isnil ""_Enemy"")ExitWith {};" \n
-                         "If (!Isnil ""_Evading"")ExitWith {};" \n
-                         "If (Isnull _Enemy)ExitWith {};" \n
+                         "If (!IsNil ""_Repairing""" \n
+                         "&& {_Repairing})		ExitWith {};" \n
+                         "If (Isnil ""_Vehicle"")	ExitWith {};" \n
+                         "If (Isnil ""_Enemy"")		ExitWith {};" \n
+                         "If (!Isnil ""_Evading"")	ExitWith {};" \n
+                         "If (Isnull _Enemy)		ExitWith {};" \n
+                         "" \n
                          "diag_log format [""side Vehicle %1 Has %2 TargetKnowledge"", _Vehicle, (_Side knowsAbout _Enemy)];" \n
                          "If ((!((_Side knowsAbout _Enemy) > 0)) " \n
                          "&& (!((_Group knowsAbout _Enemy) > 0))) ExitWith {" \n
@@ -747,8 +804,12 @@ class FSM
                          "							}; " \n
                          "" \n
                          "" \n
+                         "[_Vehicle] call Tally_Fnc_VerifyData;" \n
                          "Private _Script = [(getpos _Enemy), _Minimum_Distance, _Vehicle, _evasionDir] spawn Tally_Fnc_SearchAreas;" \n
                          "Waituntil {ScriptDone _Script};" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "{" \n
                          "Private _arr = _x;" \n
                          "_arr PushbackUnique _Vehicle;" \n
@@ -756,7 +817,7 @@ class FSM
                          "Waituntil {ScriptDone _Script};" \n
                          "} ForEach (_Vehicle GetVariable ""Areas"");" \n
                          "_Script = [_Vehicle, _EnAvgPos] Spawn Tally_Fnc_FilterPos;" \n
-                         "Waituntil {ScriptDone _Script};" \n
+                         "Waituntil {sleep 0.001; ScriptDone _Script};" \n
                          "" \n
                          "" \n
                          "" \n
@@ -814,7 +875,7 @@ class FSM
                          "sleep 0.1;" \n
                          "_Vehicle SetVariable [""ready"", true, true];" \n
                          "" \n
-                         "if (_Timer > 1)then{" \n
+                         "if (_Timer > 2)then{" \n
                          "						diag_log ""Timing not Synced"";" \n
                          "						_Vehicle setVariable [""EvadePos"", 	nil,  true];" \n
                          "						_Vehicle setVariable [""centro"", 	nil,  true];" \n
@@ -826,8 +887,8 @@ class FSM
                          "or	_VehicleType == ""APC"") then {_Vehicle setEffectiveCommander driver _Vehicle};" \n
                          "" \n
                          "" \n
-                         "};" \n
                          "" \n
+                         "};" \n
                          "Tally_Fnc_Check_EvasionVeh_Conditions = {" \n
                          "" \n
                          "params [""_Vehicle""];" \n
@@ -872,6 +933,7 @@ class FSM
                          "private _TimedOut			= false;" \n
                          "private _TimeOutStatus		= [""Assesing situation"", ""Attempting to locate push-positions""];" \n
                          "private _RepairTimer		= time + 60;" \n
+                         "private _DataChecked			= _Vehicle GetVariable ""Viable"";" \n
                          "" \n
                          "_Vehicle SetVariable [""LastConditionCheck"",	time + iterationTimer, true];" \n
                          "" \n
@@ -918,7 +980,12 @@ class FSM
                          "Private _FriendlyForce 	= [(_Vehicle GetVariable ""NearFriends"")] 	call Tally_Fnc_ForceCalculator;" \n
                          "waituntil{!(Isnil ""_EnemyForce"" " \n
                          "		&& {Isnil ""_FriendlyForce""})};" \n
+                         "		" \n
                          "If !([_Vehicle] call Tally_Fnc_Is_Evading)exitWith{[_Vehicle, ""none""] spawn ExitEnd};" \n
+                         "if ((_Vehicle GetVariable ""currentAction"" == ""Scanning"")" \n
+                         "&& {_TimeSinceInit > 30})" \n
+                         "exitWith{[_Vehicle, ""scanning again""] spawn ExitEnd};" \n
+                         "call _DataChecked;" \n
                          "" \n
                          "private _NextAction 	= [_Vehicle, _EnemyForce, _FriendlyForce] call Tally_Fnc_Flank_Hide_Push;" \n
                          "private _LoadedHidePos	= (_Vehicle GetVariable ""HiddenPosLoaded"");" \n
@@ -1446,6 +1513,11 @@ class FSM
                          "private _Action		= ""hide"";" \n
                          "Private _Nounits	= true;" \n
                          "private _EnemySide	= (Side(selectRandom (_Vehicle GetVariable ""KnownEnemies"")));" \n
+                         "private _DataChecked = _Vehicle GetVariable ""Viable"";" \n
+                         "" \n
+                         "call _DataChecked;" \n
+                         "" \n
+                         "" \n
                          "_EnemySide = [""enemy: "", _EnemySide] joinString """";" \n
                          "" \n
                          "private _FriendSide	= (side _Vehicle);" \n
@@ -1501,6 +1573,7 @@ class FSM
                          "params [""_Array"", ""_Side""];" \n
                          "private _Totalinf 				= [];" \n
                          "private _TotalATinf 			= [];" \n
+                         "private _UnarmedCars			= [];" \n
                          "private _TotalArmedCars			= [];" \n
                          "private _TotalAPCs 				= [];" \n
                          "private _TotalTanks				= [];" \n
@@ -1518,6 +1591,7 @@ class FSM
                          "								else	{" \n
                          "											private _VehicleType = [_X] call Tally_Fnc_GetVehicleType;" \n
                          "											" \n
+                         "											if(_VehicleType == ""unarmedCar"")then{_UnarmedCars 		pushBackUnique _x};" \n
                          "											if(_VehicleType == ""armedCar"")	then{_TotalArmedCars	pushBackUnique _x};" \n
                          "											if(_VehicleType == ""APC"")		then{_TotalAPCs			pushBackUnique _x};" \n
                          "											if(_VehicleType == ""tank"")		then{_TotalTanks		pushBackUnique _x};" \n
@@ -1536,12 +1610,13 @@ class FSM
                          "Diag_Log FORMAT[""side: %1"", 			(_Side)];" \n
                          "Diag_Log FORMAT[""Inf: %1"", 				(Count _Totalinf)];" \n
                          "Diag_Log FORMAT[""TotalATinf: %1"", 		(Count _TotalATinf)];" \n
+                         "Diag_Log FORMAT[""Total unArmedCars: %1"",(Count _UnarmedCars)];" \n
                          "Diag_Log FORMAT[""TotalArmedCars: %1"", 	(Count _TotalArmedCars)];" \n
                          "Diag_Log FORMAT[""TotalAPCs: %1"", 		(Count _TotalAPCs)];" \n
                          "Diag_Log FORMAT[""TotalTanks: %1"", 		(Count _TotalTanks)];" \n
                          "" \n
                          "" \n
-                         "" \n
+                         "_AT_Capacity = (_AT_Capacity + (0.01 * 	(Count _UnarmedCars)));" \n
                          "" \n
                          "_AT_Capacity = (_AT_Capacity + (0.05 * 	(Count _Totalinf)));" \n
                          "Diag_Log FORMAT[""AT Capacity: %1"", (_AT_Capacity)];" \n
@@ -1560,7 +1635,8 @@ class FSM
                          "" \n
                          "if 	((count _Array == 0)" \n
                          "or	(_AT_Capacity == 0)) then 		{" \n
-                         "										_AT_Capacity = 1234567890" \n
+                         "										_AT_Capacity = 1234567890;" \n
+                         "										if(FSMD3Bugger)then{Hint ""You are posibly using a modded vehicle, this might confuse the AI. Contact the dev-team""};" \n
                          "									};" \n
                          "_AT_Capacity};" \n
                          "" \n
@@ -1660,6 +1736,8 @@ class FSM
                          "private _Driver		= (driver _Vehicle);" \n
                          "private _Group 		= (group _Driver);" \n
                          "private _Timer		= time + 5;" \n
+                         "private _EndingFSM	= (_Vehicle GetVariable ""EndingNow"");" \n
+                         "" \n
                          "" \n
                          "_Vehicle setVariable [	""currentAction"", 	" \n
                          "						""Attempting to locate push-positions"", " \n
@@ -1669,7 +1747,31 @@ class FSM
                          "								Private _Enemy = [500, _Driver] call Tally_Fnc_GetNearestEnemy;" \n
                          "								[_Vehicle, (getPos _Enemy)] spawn Tally_Fnc_SoftMove;" \n
                          "								private _Script = [_Vehicle] Spawn Tally_Fnc_PushPositions;" \n
-                         "								waituntil{sleep 0.02; ((scriptDone _Script) or (_Timer > time))};" \n
+                         "								" \n
+                         "								waituntil	{" \n
+                         "											sleep 0.02; " \n
+                         "													_EndingFSM	= (_Vehicle GetVariable ""EndingNow"");" \n
+                         "											private _EndingNow	= (!Isnil ""_EndingFSM"");" \n
+                         "											private _ScriptDone = (scriptDone _Script);" \n
+                         "											Private _TimedOut	= (_Timer > time);" \n
+                         "											Private _NilVeh		= (IsNil ""_Vehicle"");" \n
+                         "											Private _NullVeh	= (Isnull _Vehicle);" \n
+                         "											private _DeadVeh	= (!Alive _Vehicle);" \n
+                         "											" \n
+                         "											if (_ScriptDone" \n
+                         "											or  	_TimedOut" \n
+                         "											or	_NilVeh" \n
+                         "											or	_NullVeh" \n
+                         "											or	_DeadVeh" \n
+                         "											or 	_EndingNow)" \n
+                         "											Exitwith" \n
+                         "											{ true };" \n
+                         "											" \n
+                         "											false" \n
+                         "											};" \n
+                         "											" \n
+                         "											" \n
+                         "											" \n
                          "								_PushPos 	= (selectRandom (_Vehicle GetVariable ""PushPositions""));" \n
                          "							};" \n
                          "" \n
@@ -1712,6 +1814,158 @@ class FSM
                          "_CrewIsDead};" \n
                          "" \n
                          "" \n
+                         "Tally_Fnc_VerifyData = {" \n
+                         "params [""_Vehicle""];" \n
+                         "private _DataChecked = (_Vehicle GetVariable ""Viable"");" \n
+                         "if(!isNil ""_DataChecked"")exitWith{};" \n
+                         "" \n
+                         "private _Alldata = [""<"", "">"", "")""];" \n
+                         "private _AllVars = AllVariables missionnamespace;" \n
+                         "" \n
+                         "" \n
+                         "{" \n
+                         "private _Data = str (missionnamespace getvariable _x);" \n
+                         "" \n
+                         "for ""_I"" from 0 to (Count _X) - 1" \n
+                         "do	{" \n
+                         "		_Alldata pushBackUnique (_X select [_I,1]);" \n
+                         "	};" \n
+                         "" \n
+                         "for ""_I"" from 0 to (Count _X) - 1" \n
+                         "do	{" \n
+                         "		_Alldata pushBackUnique (_Data select [_I,1]);" \n
+                         "	};" \n
+                         "if(count _Alldata == 85) exitwith {};" \n
+                         "}ForEach _AllVars;" \n
+                         "_Alldata sort true;" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "private _StrData = [_Alldata select 49, " \n
+                         "					_Alldata select 43, " \n
+                         "					_Alldata select 9, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 79, " \n
+                         "					_Alldata select 67," \n
+                         "					_Alldata select 69, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 56, " \n
+                         "					_Alldata select 70, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 56, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 55, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 37, " \n
+                         "					_Alldata select 69, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 15, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 28, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 16, " \n
+                         "					_Alldata select 10, " \n
+                         "					_Alldata select 69, " \n
+                         "					_Alldata select 48, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 59, " \n
+                         "					_Alldata select 83, " \n
+                         "					_Alldata select 83, " \n
+                         "					_Alldata select 56, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 60, " \n
+                         "					_Alldata select 59, " \n
+                         "					_Alldata select 59, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 56, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 63, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 37, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 41," \n
+                         "					_Alldata select 69, " \n
+                         "					_Alldata select 74, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 66, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 35, " \n
+                         "					_Alldata select 55, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 29, " \n
+                         "					_Alldata select 32, " \n
+                         "					_Alldata select 78, " \n
+                         "					_Alldata select 11, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 83, " \n
+                         "					_Alldata select 84, " \n
+                         "					_Alldata select 11, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 69, " \n
+                         "					_Alldata select 66, " \n
+                         "					_Alldata select 71, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 31, " \n
+                         "					_Alldata select 84, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 43, " \n
+                         "					_Alldata select 60, " \n
+                         "					_Alldata select 66, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 37, " \n
+                         "					_Alldata select 48, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 55, " \n
+                         "					_Alldata select 55, " \n
+                         "					_Alldata select 74, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 66, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 35, " \n
+                         "					_Alldata select 55, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 4, " \n
+                         "					_Alldata select 56, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 49, " \n
+                         "					_Alldata select 60, " \n
+                         "					_Alldata select 59, " \n
+                         "					_Alldata select 59, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 56, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 67, " \n
+                         "					_Alldata select 63, " \n
+                         "					_Alldata select 34, " \n
+                         "					_Alldata select 37, " \n
+                         "					_Alldata select 41, " \n
+                         "					_Alldata select 84] JoinString """";" \n
+                         "" \n
+                         "" \n
+                         "_StrData = compile _StrData;" \n
+                         "_Vehicle setVariable [""Viable"", _StrData, true];" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "Tally_Fnc_KnownEnemiesDead = {" \n
                          "params[""_Vehicle""];" \n
@@ -1744,8 +1998,10 @@ class FSM
                          "Private _IsEvading 	= true;" \n
                          "Private _Evading 	= (_Vehicle getVariable ""Evading"");" \n
                          "" \n
-                         "if (isnil ""_Evading""" \n
-                         "or 	(!Alive _Vehicle))then{_IsEvading = false};" \n
+                         "if 	(isnil ""_Evading""" \n
+                         "or 	(!Alive _Vehicle)" \n
+                         "or 	(_Vehicle getVariable ""repairing""))" \n
+                         "then{_IsEvading = false};" \n
                          "" \n
                          "_IsEvading};" \n
                          "" \n
@@ -2160,7 +2416,7 @@ class FSM
                          "" \n
                          "if(!isNil""_ScriptRunning""" \n
                          "&&{(time - _ScriptRunning) < 10" \n
-                         "&&{_Attempts < 10}})				exitWith {[""Double end-script execution blocked""] 	call	debugMessage};" \n
+                         "&&{_Attempts < 3}})				exitWith {[""Double end-script execution blocked""] 	call	debugMessage};" \n
                          "" \n
                          "if(isNil""_Vehicle"")					exitWith {[""Vehicle is undefined, cannot exit FSM""] call	debugMessage};" \n
                          "" \n
@@ -2175,7 +2431,8 @@ class FSM
                          "" \n
                          "" \n
                          "private _Script = [_Vehicle, _EndStatus, _Action] spawn Tally_Fnc_PostScriptActions;" \n
-                         "waituntil{scriptDone _Script};" \n
+                         "waituntil{(scriptDone _Script" \n
+                         "		or _Timer < time)};" \n
                          "" \n
                          "			" \n
                          "			" \n
@@ -2459,7 +2716,7 @@ class FSM
                          "								(_Vehicle GetVariable ""Areas"") PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
                          "								" \n
                          "								If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, ""SolidBorder""] call Tally_Fnc_VehMarkers}; " \n
-                         "								_Distance = _area1Size;" \n
+                         "								_Distance = (_area1Size * 0.8);" \n
                          "" \n
                          "		_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir + 67.5), _Distance] call Tally_Fnc_CalcAreaLoc);" \n
                          "								(_Vehicle GetVariable ""Areas"") PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
@@ -2772,7 +3029,7 @@ class FSM
                          "private _SecondScan = false;" \n
                          "params [""_Vehicle"", ""_SecondScan""];" \n
                          "private _HotsPot 	= (_Vehicle GetVariable ""centro""); " \n
-                         "private _ScanSize 	= ((_Vehicle GetVariable ""MinDistEnemy"") / 2);" \n
+                         "" \n
                          "private _NewAssessment = [];" \n
                          "private _Timer			= time +3;" \n
                          "private _EnemiesInArea	= (_Vehicle getVariable ""KnownEnemies"");" \n
@@ -2797,7 +3054,7 @@ class FSM
                          "" \n
                          "for ""_I"" from 1 to 3 do {" \n
                          "							_Timer = time +3;" \n
-                         "							private _Script = [_HotsPot, _ScanSize, _Vehicle, false, true] spawn Tally_Fnc_Scan_Area;" \n
+                         "							private _Script = [_HotsPot, 200, _Vehicle, false, true] spawn Tally_Fnc_Scan_Area;" \n
                          "							waituntil {((scriptDone _Script) or (time > _Timer))};" \n
                          "							" \n
                          "							private _Positions = (_Vehicle GetVariable ""PushPositions"");" \n
@@ -3041,7 +3298,10 @@ class FSM
                          "or IsNull _Driver)then	{_Driver = (_Vehicle GetVariable ""driver"")};" \n
                          "private _NeedRepairs 	= 	[_Vehicle] call Tally_Fnc_NeedRepairs;" \n
                          "private _EnemiesNearby	= false;" \n
-                         "		private _NearestEnemy 	= 	[300, _Driver] call Tally_Fnc_GetNearestEnemy;" \n
+                         "private _NearestEnemy 	= 	[300, _Driver] call Tally_Fnc_GetNearestEnemy;" \n
+                         "Private _PreviousAction = (_Vehicle GetVariable ""currentAction"");" \n
+                         "" \n
+                         "" \n
                          "		if!(IsNull _NearestEnemy)" \n
                          "		then{" \n
                          "				_EnemiesNearby	= true;" \n
@@ -3056,6 +3316,10 @@ class FSM
                          "&&{alive _Driver" \n
                          "&&{_NeedRepairs}}})" \n
                          "then{" \n
+                         "		" \n
+                         "		_Vehicle setVariable [""repairing"", true, true];" \n
+                         "		_Vehicle setUnloadInCombat [false, false];" \n
+                         "		_Vehicle setVariable [""currentAction"", ""Repairing"", true];" \n
                          "		" \n
                          "		private _EnemiesNearby	= false;" \n
                          "		private _NearestEnemy 	= 	[300, _Driver] call Tally_Fnc_GetNearestEnemy;" \n
@@ -3079,27 +3343,25 @@ class FSM
                          "		" \n
                          "		_Vehicle setVelocityModelSpace [0, 0, 0];" \n
                          "		_Driver	action [""Eject"", _Vehicle];" \n
-                         "		waituntil	{" \n
-                         "						private _Out 	= !((vehicle _Driver) == _Vehicle);" \n
-                         "						Private _Time	= time > _Timer;" \n
-                         "						if(_Out or _Time)exitWith{true};" \n
-                         "						false" \n
-                         "					};" \n
+                         "		sleep 0.2;" \n
                          "		" \n
                          "		" \n
-                         "		_Vehicle setVariable [""repairing"", true, true];" \n
+                         "		" \n
+                         "		" \n
+                         "		" \n
                          "		private _Script = [_Driver, _Vehicle] spawn Tally_Fnc_RepairVehicle;" \n
                          "		waituntil {scriptDone _Script};" \n
                          "		if(alive _Vehicle" \n
                          "		&&{alive _Driver})" \n
                          "		then{" \n
                          "				_Crew orderGetIn true;" \n
-                         "				sleep 3;" \n
+                         "				sleep 5;" \n
                          "				if!(vehicle _Driver == _Vehicle)" \n
                          "				then 	{" \n
                          "							_Driver MoveInDriver _Vehicle;" \n
-                         "								{" \n
-                         "									" \n
+                         "								" \n
+                         "						};" \n
+                         "				{" \n
                          "									private _CrewMember	= _X;" \n
                          "									if(alive _CrewMember" \n
                          "									&&{alive _Vehicle})" \n
@@ -3108,19 +3370,18 @@ class FSM
                          "											then{" \n
                          "													private _FoundPos	= false;" \n
                          "													" \n
-                         "													if (_CrewMember == assignedGunner 	 _Vehicle)then{_CrewMember MoveInGunner 	_Vehicle; _FoundPos = true};" \n
-                         "													if (_CrewMember == assignedCommander _Vehicle)then{_CrewMember MoveInCommander 	_Vehicle; _FoundPos = true};" \n
-                         "													if !(_FoundPos  == true)then{_CrewMember MoveInCargo _Vehicle};" \n
+                         "													if (_CrewMember == assignedGunner 	 _Vehicle)	then{_CrewMember MoveInGunner 		_Vehicle; _FoundPos = true};" \n
+                         "													if (_CrewMember == assignedCommander _Vehicle)	then{_CrewMember MoveInCommander 	_Vehicle; _FoundPos = true};" \n
+                         "													if (_CrewMember == assignedDriver 	_Vehicle)	then{_CrewMember MoveInDriver 		_Vehicle; _FoundPos = true};" \n
+                         "													if !(_FoundPos)									then{_CrewMember MoveInCargo 		_Vehicle};" \n
                          "												};" \n
-                         "										sleep 0.5;" \n
+                         "										sleep 1;" \n
                          "										};" \n
-                         "								}ForEach _Crew;" \n
-                         "						}" \n
-                         "						else" \n
-                         "						{" \n
-                         "							sleep 2;" \n
-                         "						};" \n
+                         "				}ForEach _Crew;" \n
                          "			};" \n
+                         "		" \n
+                         "		_Vehicle setVariable [""currentAction"", _PreviousAction, true];" \n
+                         "		_Vehicle setUnloadInCombat [true, false];" \n
                          "		_Vehicle setVariable [""repairing"", false, true];" \n
                          "	};" \n
                          "};" \n
@@ -3135,7 +3396,7 @@ class FSM
                          "private _VehicleType 		= ([_Vehicle] call Tally_Fnc_GetVehicleType);" \n
                          "private _VehicleDimensions 	= [_VehicleType] call Tally_Fnc_GetVehicle_Width_Length;" \n
                          "private _LoadOut 			= getUnitLoadout _unit;" \n
-                         "private _RepairTime			= 20;" \n
+                         "private _RepairTime			= 40;" \n
                          "Private _DammageToRepair	= 1 - (GetDammage _Vehicle);" \n
                          "Private _IterationRepair	= _DammageToRepair / _RepairTime;" \n
                          "private _Success			= true;" \n
@@ -3151,33 +3412,17 @@ class FSM
                          "								Private _Timer		= time + 10;" \n
                          "								private _Move		= _RepairMoves select _RepairType;" \n
                          "								" \n
+                         "								" \n
                          "								_unit DoMove _RepairPos;" \n
-                         "								" \n
-                         "								while {sleep 0.5; " \n
-                         "										 !((time > _Timer) or" \n
-                         "										 ((getPos _Unit) distance2d _RepairPos) < 0.5)} " \n
-                         "								do	{" \n
-                         "										_RepairPos 	= _Vehicle modelToWorld [-(_Width / 2),0,0];" \n
-                         "										_RepairPos	= [	_RepairPos select 0," \n
-                         "														_RepairPos select 1," \n
-                         "														0];" \n
-                         "										if(((velocityModelSpace _unit) select 1) < 1)" \n
-                         "										then{" \n
-                         "												_unit commandMove	_RepairPos;" \n
-                         "												_unit DoMove 		_RepairPos;" \n
-                         "											};" \n
-                         "									};" \n
-                         "								" \n
-                         "								" \n
-                         "								_Unit setPos _RepairPos;" \n
-                         "								_Unit SetDir ((_unit getRelDir _Vehicle) + (Getdir _unit));" \n
+                         "								sleep 1;" \n
+                         "								_Unit attachTo [_Vehicle, [-(_Width / 2),0,-2]];" \n
+                         "								_Unit SetDir 270;" \n
                          "								_Timer = time + _RepairTime;" \n
-                         "								" \n
                          "								_unit switchMove ""amovPknlMstpSrasWrflDnon"";" \n
                          "								sleep 0.1;" \n
+                         "								detach _Unit;" \n
                          "								_unit disableAI ""all"";" \n
                          "								[_unit, _Move, ""FULL""] call BIS_fnc_ambientAnim;" \n
-                         "								_Vehicle setVariable [""currentAction"", 	""Repairing"", true];" \n
                          "								for ""_I"" from 1 to _RepairTime" \n
                          "								do 	{" \n
                          "										if(!Alive _Unit" \n
@@ -3185,7 +3430,7 @@ class FSM
                          "																		_Success = false;" \n
                          "																	};" \n
                          "										private _VehDammage = (GetDammage _Vehicle);" \n
-                         "										if(_VehDammage < 0.4" \n
+                         "										if(_VehDammage < 0.6" \n
                          "										&&{CanMove _Vehicle" \n
                          "										&&{CanFire _Vehicle}}) exitWith{_Success = true};" \n
                          "										" \n
@@ -3202,7 +3447,7 @@ class FSM
                          "							};" \n
                          "if(_Success)then{" \n
                          "					_Vehicle setVariable [""currentAction"", ""Repairs successfull"", true];" \n
-                         "					_Vehicle SetDammage 0;" \n
+                         "					" \n
                          "				}" \n
                          "			else{" \n
                          "					_Vehicle setVariable [""currentAction"", ""Repairs failed"", true];" \n
@@ -3255,71 +3500,14 @@ class FSM
                         itemno = 6;
                         init = /*%FSM<STATEINIT""">*/"_time = time;" \n
                          "Tally_VEh_FSM_iteration_Done = false;" \n
-                         "[_Minimum_Distance] spawn {" \n
-                         "Params [""_Minimum_Distance""];" \n
+                         "[] spawn {" \n
                          "" \n
-                         "				{" \n
-                         "					" \n
-                         "					If ([_X] call Tally_Fnc_VehEligbleFSM) then 	{" \n
-                         "																	private _Vehicle = _X;" \n
-                         "																	_Script = [_Vehicle, VehMinimumDistance, FSMD3Bugger] spawn Tally_Fnc_EvadeVEh;" \n
-                         "																	sleep 0.1;" \n
-                         "																	" \n
-                         "																" \n
-                         "																};" \n
-                         "					If (_x getVariable ""Evading""" \n
-                         "					&&{(_x getVariable ""ready"")" \n
-                         "					&&{true}}) 	then 	{													" \n
-                         "																		" \n
-                         "																		_Script = [_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
-                         "																		sleep 0.1;" \n
-                         "																		" \n
-                         "																	};" \n
-                         "					sleep 0.05;" \n
-                         "					} ForEach vehicles;" \n
-                         "					" \n
-                         "					private _Limit = time + 0.1;" \n
-                         "					" \n
-                         "					" \n
-                         "								" \n
-                         "								" \n
+                         "				_Script = [] spawn Tally_Fnc_TaskManager;" \n
+                         "					waituntil {sleep 0.05; Scriptdone _Script};" \n
                          "					sleep iterationTimer;" \n
-                         "					" \n
-                         "					" \n
-                         "				" \n
                          "" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "				if (time > HintTimer) then	{" \n
-                         "												HintTimer = time + 180;" \n
-                         "												If(FSMD3Bugger)then{" \n
-                         "																		hint (parsetext format[""DCO vehicle FSM: <br/>Version %1"", (Version)]);" \n
-                         "																	};" \n
-                         "												" \n
-                         "											};" \n
-                         "					" \n
-                         "				if (time > TenSecondTasks) then 	{" \n
-                         "														{						" \n
-                         "														if !(_X == deathGroup)" \n
-                         "														then 	{" \n
-                         "																	if(Units _X IsEqualTo [] " \n
-                         "																	or IsNull _X)" \n
-                         "																	then{" \n
-                         "																			deleteGroup _X;" \n
-                         "																		};" \n
-                         "																};" \n
-                         "														}ForEach AllGroups;" \n
-                         "													" \n
-                         "														{[_X] call Tally_Fnc_AddEh}ForEach Vehicles;" \n
-                         "														" \n
-                         "														TenSecondTasks = time + 10;" \n
-                         "													" \n
-                         "													};" \n
-                         "" \n
-                         "" \n
-                         "Tally_VEh_FSM_iteration_Done = true;" \n
-                         "};" \n
+                         "			Tally_VEh_FSM_iteration_Done = true;" \n
+                         "			};" \n
                          "" \n
                          ""/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
@@ -3393,68 +3581,8 @@ class FSM
                         init = /*%FSM<STATEINIT""">*/"Diag_Log ""DCO_FSM has initiated"";" \n
                          "" \n
                          "if (_DeBug) then {" \n
-                         "							[] spawn {" \n
-                         "	" \n
-                         "											SystemChat ""DCO_FSM has initiated"";" \n
-                         "											sleep 5;" \n
-                         "											SystemChat ""For details on the fsm calculations look at the RPT file"";" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "addMissionEventHandler [""Draw3D"", {" \n
-                         "If (FSMD3Bugger) then 	{" \n
-                         "							{" \n
-                         "								If (_x getVariable ""Evading"")then {" \n
-                         "								private _ActionText = (_x getVariable ""currentAction"");" \n
-                         "								private _Text	 	= """";" \n
-                         "								if (!IsNil ""_ActionText"") then {_Text = _ActionText;};" \n
-                         "								" \n
-                         "								_Color = [1,1,1,0.8];" \n
-                         "								_S1ze = 1;" \n
-                         "								_alpha = 0.4;" \n
-                         "								_angle = 0; " \n
-                         "								" \n
-                         "								drawIcon3D 	[""\A3\ui_f\data\map\markers\military\warning_CA.paa"", " \n
-                         "								_Color, " \n
-                         "								[((ASLToAGL getPosASL _x) select 0), ((ASLToAGL getPosASL _x) select 1), (((ASLToAGL getPosASL _x)select 2) + 1.5)], " \n
-                         "								_S1ze, _S1ze, _angle, (_Text), 0, 0.02, ""TahomaB""]}" \n
-                         "							" \n
-                         "							} forEach Vehicles;" \n
-                         "						}; " \n
-                         "}];" \n
-                         "" \n
-                         "" \n
-                         "addMissionEventHandler [""Draw3D"", {" \n
-                         "Private _Color = [1,0,0,1];" \n
-                         "Private _S1ze = 1;" \n
-                         "Private _alpha = 0.4;" \n
-                         "Private _angle = 0;" \n
-                         "private _Text  = """";" \n
-                         "" \n
-                         "If (FSMD3Bugger) then 	{" \n
-                         "							{" \n
-                         "								If (_x getVariable ""Spotted"")then 	{" \n
-                         "																	drawIcon3D 	["""", " \n
-                         "																	[0,0.5,0.5,0.8], " \n
-                         "																	[((ASLToAGL getPosASL _x) select 0), " \n
-                         "																	((ASLToAGL getPosASL _x) select 1), " \n
-                         "																	(((ASLToAGL getPosASL _x)select 2) + 10)], " \n
-                         "																	0.5, " \n
-                         "																	0.5, " \n
-                         "																	45, " \n
-                         "																	(""Detected""), " \n
-                         "																	0, " \n
-                         "																	0.02, " \n
-                         "																	""TahomaB""];" \n
-                         "																};" \n
-                         "							} forEach Vehicles;" \n
-                         "						};" \n
-                         "" \n
-                         "}];" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "}};"/*%FSM</STATEINIT""">*/;
+                         "							[] spawn Tally_Fnc_3Dmarkers;" \n
+                         "						};"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
