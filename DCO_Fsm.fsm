@@ -3,7 +3,7 @@
 /*
 item0[] = {"Init_FSM",0,250,-436.614563,-1259.584595,-346.614624,-1209.584473,0.000000,"Init FSM"};
 item1[] = {"FSM_not_running",4,218,-450.142822,-1144.447144,-335.270630,-1073.305664,0.000000,"FSM not running"};
-item2[] = {"Declaring_all_functions",2,4346,-509.914093,-776.690063,-272.368530,-693.902222,0.000000,"Declaring all functions needed"};
+item2[] = {"Declaring_all_functions",2,250,-509.914093,-776.690063,-272.368530,-693.902222,0.000000,"Declaring all functions needed"};
 item3[] = {"sleep",4,218,-434.686584,-456.030518,-344.686584,-406.030579,0.000000,"sleep"};
 item4[] = {"sleep",4,218,-26.469467,-288.876068,63.530533,-238.875946,0.000000,"sleep"};
 item5[] = {"",7,210,14.034729,-141.697815,22.034729,-133.697815,0.000000,""};
@@ -13,7 +13,7 @@ item8[] = {"exit",1,250,116.966492,-1156.514160,206.966522,-1106.514282,0.000000
 item9[] = {"Declare_state",2,250,-438.308624,-999.929077,-348.308624,-949.929077,0.000000,"Declare state"};
 item10[] = {"sleep",4,218,-437.688751,-879.131104,-347.688751,-829.131104,0.000000,"sleep"};
 item11[] = {"true",8,218,-434.722595,-638.593079,-344.722595,-588.593079,0.000000,"true"};
-item12[] = {"feedback",2,250,-434.264252,-532.616943,-344.264282,-482.616943,0.000000,"feedback"};
+item12[] = {"feedback",2,4346,-434.264252,-532.616943,-344.264282,-482.616943,0.000000,"feedback"};
 item13[] = {"EndCondition",4,218,116.574257,-510.365356,206.574249,-427.530273,0.000000,"EndCondition"};
 item14[] = {"Feedback_1",2,250,116.823433,-742.144836,206.823456,-692.144836,0.000000,"Feedback"};
 item15[] = {"true",8,218,117.289719,-956.827026,207.289719,-906.827087,0.000000,"true"};
@@ -77,8 +77,8 @@ link15[] = {14,15};
 link16[] = {15,8};
 link17[] = {16,6};
 link18[] = {19,14};
-globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1533.017944,890.700195,-239.622070,-1975.900024,1234,884,1};
-window[] = {2,-1,-1,-32000,-32000,921,182,1206,182,3,1252};
+globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1433.603271,791.283325,-52.553467,-1646.394409,1234,884,1};
+window[] = {2,-1,-1,-1,-1,947,208,1232,208,3,1252};
 *//*%FSM</HEAD>*/
 class FSM
 {
@@ -139,7 +139,7 @@ class FSM
                          "private _Timer = time;" \n
                          "		{" \n
                          "			Private _arr = _x;" \n
-                         "			_arr PushbackUnique _Vehicle;" \n
+                         "			" \n
                          "	private _Script =  _arr spawn Tally_Fnc_Scan_Area; diag_log format [""arr %1"", (_arr)];" \n
                          "	" \n
                          "			Waituntil {	" \n
@@ -156,7 +156,37 @@ class FSM
                          "						or(time - _Timer > 3))" \n
                          "					  };" \n
                          "		[""Flank positions loaded in seconds:"", (time-_Timer)] call debugMessage;" \n
+                         "		_Vehicle SetVariable [""FlankPosLoaded"", true, true];" \n
                          "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_CuratorEH = {" \n
+                         "{" \n
+                         "_x addEventHandler [""CuratorObjectDeleted"", {" \n
+                         "	params [""_curator"", ""_entity""];" \n
+                         "private _Evading = _entity GetVariable ""Evading"";" \n
+                         "	if(FSMD3Bugger)" \n
+                         "	then{" \n
+                         "			if(!isnil ""_Evading"")" \n
+                         "			then{" \n
+                         "					Hint (parsetext format [""Be carefull deleting units while they are engaged / activated. <br/>This could lead to scripts not exiting properly""]);" \n
+                         "				};" \n
+                         "		};" \n
+                         "	" \n
+                         "}];" \n
+                         "}ForEach allCurators;" \n
+                         "" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "Tally_Fnc_QuickDecision = {" \n
                          "params [""_Vehicle"", ""_EnAvgPos""];" \n
@@ -291,6 +321,7 @@ class FSM
                          "_Vehicle SetVariable [""Cluster"",			_EnemyCluster,									true];" \n
                          "_Vehicle SetVariable [""Centro"",				_EnAvgPos,										true];" \n
                          "_Vehicle SetVariable [""Positions"",			[], 											true];" \n
+                         "_Vehicle SetVariable [""FlankPosLoaded"",		false, 											true];" \n
                          "_Vehicle SetVariable [""HidePositions"",		[], 											true];" \n
                          "_Vehicle SetVariable [""Markers"", 			[], 											true];" \n
                          "_Vehicle SetVariable [""NextPosMarkers"",		[], 											true];" \n
@@ -335,8 +366,9 @@ class FSM
                          "" \n
                          "" \n
                          "Private _Areas = [(getpos _Enemy), _Minimum_Distance, _Vehicle, _evasionDir] call Tally_Fnc_SearchAreas;" \n
-                         "" \n
                          "_Vehicle SetVariable [""Areas"", 	_Areas, true];" \n
+                         "{_x PushbackUnique _Vehicle}ForEach(_Vehicle GetVariable ""Areas"");" \n
+                         "" \n
                          "" \n
                          "[_Vehicle, _EnAvgPos] call Tally_Fnc_QuickDecision;" \n
                          "" \n
@@ -348,22 +380,30 @@ class FSM
                          "		Waituntil {sleep 0.02; " \n
                          "						((ScriptDone _Script)" \n
                          "						or(time - _Timer > 3))" \n
-                         "					  };" \n
+                         "					 };" \n
                          "	}" \n
                          "else{" \n
-                         "		sleep 0.5;" \n
+                         "		Waituntil {" \n
+                         "					sleep 0.02; " \n
+                         "					((_Initiator GetVariable ""FlankPosLoaded"")" \n
+                         "					or(time - _Timer > 4))" \n
+                         "				  };" \n
+                         "					 " \n
+                         "					 " \n
                          "		private _FlankPositions = (_Initiator GetVariable ""Positions"");" \n
                          "		" \n
-                         "		if (count _FlankPositions > 4)then" \n
-                         "		{" \n
-                         "			_Vehicle SetVariable [""Positions"", _FlankPositions, true];" \n
-                         "		}" \n
+                         "			if (count _FlankPositions > 4)then" \n
+                         "			{" \n
+                         "				_Vehicle SetVariable [""Positions"", _FlankPositions, true];" \n
+                         "			}" \n
+                         "		" \n
                          "		else{" \n
                          "				private _script = [_Vehicle, _EnAvgPos] spawn Tally_Fnc_FlankPositions;" \n
-                         "				Waituntil {sleep 0.02; " \n
-                         "								((ScriptDone _Script)" \n
-                         "								or(time - _Timer > 3))" \n
-                         "							  };" \n
+                         "				Waituntil 	{" \n
+                         "							sleep 0.02; " \n
+                         "							((ScriptDone _Script)" \n
+                         "							or(time - _Timer > 3))" \n
+                         "							};" \n
                          "			};" \n
                          "		" \n
                          "		" \n
@@ -770,7 +810,9 @@ class FSM
                          "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
                          "" \n
                          "								If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, ""SolidBorder""] call Tally_Fnc_VehMarkers};" \n
-                         "		" \n
+                         "" \n
+                         "" \n
+                         "	" \n
                          "_Areas};" \n
                          "" \n
                          "" \n
@@ -1546,6 +1588,7 @@ class FSM
                          "			_Vehicle SetVariable [""EndingNow"", 		nil, true];" \n
                          "			_Vehicle setVariable [""EndAttempts"", 	nil, true];" \n
                          "			_Vehicle SetVariable [""endedAlready"", 	nil, true];" \n
+                         "			_Vehicle SetVariable [""FlankPosLoaded"", nil, true];" \n
                          "" \n
                          "{_X SetVariable [""Spotted"", nil, true];}ForEach(_Vehicle GetVariable ""AllSpotted"");" \n
                          "_Vehicle setVariable [""AllSpotted"", 	nil, true];" \n
@@ -3095,11 +3138,12 @@ class FSM
                          "" \n
                          "" \n
                          "AreaScan = false;" \n
-                         "Version	 = 0.98;" \n
+                         "Version	 = 0.99;" \n
                          "deathGroup = createGroup civilian;" \n
                          "HintTimer			= 180;" \n
                          "TenSecondTaskTimer	= 0;" \n
-                         "" \n
+                         "{[_X] call Tally_Fnc_AddEh}ForEach Vehicles;" \n
+                         "[] call Tally_Fnc_CuratorEH;" \n
                          "" \n
                          "Tally_Fnc_TaskManager = {" \n
                          "" \n
@@ -3302,41 +3346,63 @@ class FSM
                          "Tally_Fnc_GetVehicleType = {" \n
                          "params [""_Vehicle""];" \n
                          "private _typeOfVehicle 	= ""unknown"";" \n
+                         "private _CfgName		= (TypeOf _Vehicle);" \n
                          "private _parentType		= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 2);" \n
                          "private _Firstparent	= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 1);" \n
                          "" \n
                          "" \n
-                         "Private _MBTparents = [	""MBT_03_base_F""," \n
-                         "						""MBT_04_base_F""," \n
-                         "						""O_MBT_02_base_F""," \n
-                         "						""B_MBT_01_base_F""," \n
-                         "						""MBT_02_base_F""," \n
-                         "						""MBT_01_base_F""," \n
-                         "						""CUP_Challenger2_base""," \n
-                         "						""CUP_Leopard2_Base""," \n
-                         "						""CUP_T72_Base""," \n
-                         "						""CUP_M1Abrams_A2_Base""," \n
-                         "						""CUP_M1Abrams_A2_TUSK_Base""," \n
-                         "						""CUP_M1A2Abrams_TUSK_Base""," \n
-                         "						""CUP_M1A2Abrams_Base""," \n
-                         "						""CUP_M1Abrams_TUSK_Base""," \n
-                         "						""CUP_M1Abrams_Base""," \n
-                         "						""CUP_M60A3_Base""," \n
-                         "						""CUP_T90_Base""," \n
-                         "						""CUP_T55_Base""," \n
-                         "						""CUP_T34_Base""];" \n
+                         "private _TankCfgNames = [" \n
+                         "							""B_T_MBT_01_TUSK_F""" \n
+                         "						];" \n
+                         "" \n
+                         "" \n
+                         "Private _MBTparents = [		""MBT_03_base_F""," \n
+                         "						  ""MBT_04_base_F""," \n
+                         "						  ""O_MBT_02_base_F""," \n
+                         "						  ""B_MBT_01_base_F""," \n
+                         "						  ""MBT_02_base_F""," \n
+                         "						  ""MBT_01_base_F""," \n
+                         "						  ""CUP_Challenger2_base""," \n
+                         "						  ""CUP_Leopard2_Base""," \n
+                         "						  ""CUP_T72_Base""," \n
+                         "						  ""CUP_M1Abrams_A2_Base""," \n
+                         "						  ""CUP_M1Abrams_A2_TUSK_Base""," \n
+                         "						  ""CUP_M1A2Abrams_TUSK_Base""," \n
+                         "						  ""CUP_M1A2Abrams_Base""," \n
+                         "						  ""CUP_M1Abrams_TUSK_Base""," \n
+                         "						  ""CUP_M1Abrams_Base""," \n
+                         "						  ""CUP_M60A3_Base""," \n
+                         "						  ""CUP_T90_Base""," \n
+                         "						  ""CUP_T55_Base""," \n
+                         "						  ""CUP_T34_Base""," \n
+                         "						  ""rhs_t80b""," \n
+                         "						  ""rhs_t80bv""," \n
+                         "						  ""rhs_t80u""," \n
+                         "						  ""rhsusf_m1a2tank_base""," \n
+                         "						  ""rhsusf_m1a1fep_d""," \n
+                         "						  ""rhs_t80uk""," \n
+                         "						  ""rhsusf_m1a2sep1tuskid_usarmy""," \n
+                         "						  ""rhs_t72ba_tv""," \n
+                         "						  ""rhs_t72bb_tv""," \n
+                         "						  ""rhsusf_m1a1tank_base""," \n
+                         "						  ""rhs_a3t72tank_base""," \n
+                         "						  ""rhs_a3spruttank_base""," \n
+                         "						  ""rhs_t72bd_tv""," \n
+                         "						  ""rhs_tank_base""," \n
+                         "						  ""rhs_t80a""," \n
+                         "						  ""rhs_t72bc_tv""];" \n
                          "" \n
                          "Private _APCparents = [""APC_Wheeled_03_base_F""," \n
-                         "					   ""APC_Wheeled_02_base_F""," \n
-                         "					   ""AFV_Wheeled_01_base_F""," \n
-                         "					   ""Wheeled_APC_F""," \n
-                         "					   ""APC_Wheeled_01_base_F""," \n
-                         "					   ""APC_Tracked_01_base_F""," \n
-                         "					   ""B_APC_Tracked_01_base_F""," \n
-                         "					   ""APC_Tracked_02_base_F""," \n
-                         "					   ""APC_Tracked_03_base_F""," \n
-                         "					   ""O_APC_Tracked_02_base_F""," \n
-                         "					   ""CUP_B_MCV80_GB_D_SLAT""," \n
+                         "						""APC_Wheeled_02_base_F""," \n
+                         "						""AFV_Wheeled_01_base_F""," \n
+                         "						""Wheeled_APC_F""," \n
+                         "						""APC_Wheeled_01_base_F""," \n
+                         "						""APC_Tracked_01_base_F""," \n
+                         "						""B_APC_Tracked_01_base_F""," \n
+                         "						""APC_Tracked_02_base_F""," \n
+                         "						""APC_Tracked_03_base_F""," \n
+                         "						""O_APC_Tracked_02_base_F""," \n
+                         "						""CUP_B_MCV80_GB_D_SLAT""," \n
                          "						""CUP_Boxer_Base""," \n
                          "						""CUP_M2Bradley_Base""," \n
                          "						""CUP_FV432_Bulldog_Base""," \n
@@ -3366,10 +3432,55 @@ class FSM
                          "						""CUP_BTR40_MG_Base""," \n
                          "						""CUP_GAZ_Vodnik_Base""," \n
                          "						""CUP_BTR80A_Base""," \n
-                         "						""CUP_M113A3_Med_Base""];" \n
+                         "						""CUP_M113A3_Med_Base""," \n
+                         "						""rhsusf_caiman_base""," \n
+                         "						""rhsusf_m113tank_base""," \n
+                         "						""rhsusf_M1237_base""," \n
+                         "						""rhsusf_m113_usarmy""," \n
+                         "						""MRAP_01_base_F""," \n
+                         "						""rhsusf_stryker_m1126_m2_base""," \n
+                         "						""rhsusf_stryker_m1127_base""," \n
+                         "						""rhsusf_m113_usarmy_unarmed""," \n
+                         "						""rhsusf_RG33L_base""," \n
+                         "						""rhsusf_stryker_m1126_base""," \n
+                         "						""rhsusf_stryker_m1132_m2_base""," \n
+                         "						""rhsusf_RG33L_GPK_base""," \n
+                         "						""rhsusf_M1117_D""," \n
+                         "						""rhsusf_M1117_base""," \n
+                         "						""rhsusf_M1232_M2_usarmy_d""," \n
+                         "						""rhsusf_m113_usarmy_supply""," \n
+                         "						""rhs_btr70_vmf""," \n
+                         "						""rhsusf_m113_usarmy_MK19""," \n
+                         "						""rhs_zsutank_base""," \n
+                         "						""rhsgref_BRDM2""," \n
+                         "						""rhs_btr80_msv""," \n
+                         "						""rhsgref_BRDM2UM""," \n
+                         "						""rhs_btr60_vmf""," \n
+                         "						""rhs_btr60_base""," \n
+                         "						""rhs_btr_base""," \n
+                         "						""rhs_btr70_msv""," \n
+                         "						""rhs_bmd1_base""," \n
+                         "						""rhs_bmd2_base""," \n
+                         "						""rhs_bmd2""," \n
+                         "						""rhs_bmp1_vdv""," \n
+                         "						""rhs_bmp1k_vdv""," \n
+                         "						""rhs_bmp1p_vdv""," \n
+                         "						""rhs_bmp2e_vdv""," \n
+                         "						""rhs_bmp2_vdv""," \n
+                         "						""rhs_bmp2d_vdv""," \n
+                         "						""rhs_bmp2k_vdv""," \n
+                         "						""rhs_a3spruttank_base""," \n
+                         "						""rhs_bmd4_vdv""," \n
+                         "						""rhs_bmp1tank_base""," \n
+                         "						""rhs_bmp_base""," \n
+                         "						""rhs_bmd_base""," \n
+                         "						""rhs_brm1k_base""," \n
+                         "						""rhs_bmp3tank_base""," \n
+                         "						""rhs_t15_base""];" \n
                          "					   " \n
                          "if	(_parentType in _MBTparents" \n
-                         "or   _Firstparent in _MBTparents)then{_typeOfVehicle = ""tank""}" \n
+                         "or   _Firstparent in _MBTparents" \n
+                         "or 	(_CfgName in _TankCfgNames))then{_typeOfVehicle = ""tank""}" \n
                          "else{" \n
                          "if	(_parentType in _APCparents" \n
                          "or   _Firstparent in _APCparents)then{_typeOfVehicle = ""APC""}" \n
@@ -3388,7 +3499,7 @@ class FSM
                          "	};" \n
                          "" \n
                          "If(_typeOfVehicle == ""unknown""" \n
-                         "&&{alive _Vehicle})then{[""Could not categorize vehicle"", (typeof _Vehicle)] call debugMessage};" \n
+                         "&&{alive _Vehicle})then{[""Could not categorize vehicle"", _CfgName] call debugMessage};" \n
                          "" \n
                          "					   " \n
                          "_typeOfVehicle" \n
@@ -3496,26 +3607,6 @@ class FSM
                          "" \n
                          "" \n
                          "_Enemy};" \n
-                         "" \n
-                         "" \n
-                         "Tally_Fnc_CuratorEH = {" \n
-                         "{" \n
-                         "_x addEventHandler [""CuratorObjectDeleted"", {" \n
-                         "	params [""_curator"", ""_entity""];" \n
-                         "private _Evading = _entity GetVariable ""Evading"";" \n
-                         "	if(FSMD3Bugger)" \n
-                         "	then{" \n
-                         "			if(!isnil ""_Evading"")" \n
-                         "			then{" \n
-                         "					Hint (parsetext format [""Be carefull deleting units while they are engaged / activated. <br/>This could lead to scripts not exiting properly""]);" \n
-                         "				};" \n
-                         "		};" \n
-                         "	" \n
-                         "}];" \n
-                         "}ForEach allCurators;" \n
-                         "" \n
-                         "" \n
-                         "};" \n
                          "" \n
                          "" \n
                          "" \n
@@ -3692,9 +3783,7 @@ class FSM
                          "" \n
                          "}];" \n
                          "" \n
-                         "};" \n
-                         "" \n
-                         ""/*%FSM</STATEINIT""">*/;
+                         "};"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -3705,7 +3794,7 @@ class FSM
                                         priority = 0.000000;
                                         to="feedback";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/""/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"!IsNil Tally_Fnc_CuratorEH"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -3785,7 +3874,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Declaring_all_functions";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"time - _time > 1"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"time - _time > 1;"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -3799,9 +3888,12 @@ class FSM
                         itemno = 12;
                         init = /*%FSM<STATEINIT""">*/"Diag_Log ""DCO_FSM has initiated"";" \n
                          "" \n
+                         "" \n
+                         "" \n
                          "if (_DeBug) then {" \n
                          "							[] spawn Tally_Fnc_3Dmarkers;" \n
-                         "						};"/*%FSM</STATEINIT""">*/;
+                         "if(!Isnil Tally_Fnc_CuratorEH)then{[] call  Tally_Fnc_CuratorEH};" \n
+                         "};"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
