@@ -13,9 +13,9 @@ item8[] = {"exit",1,250,116.966492,-1156.514160,206.966522,-1106.514282,0.000000
 item9[] = {"Declare_state",2,250,-438.308624,-999.929077,-348.308624,-949.929077,0.000000,"Declare state"};
 item10[] = {"sleep",4,218,-437.688751,-879.131104,-347.688751,-829.131104,0.000000,"sleep"};
 item11[] = {"true",8,218,-434.722595,-638.593079,-344.722595,-588.593079,0.000000,"true"};
-item12[] = {"feedback",2,4346,-434.264252,-532.616943,-344.264282,-482.616943,0.000000,"feedback"};
+item12[] = {"PostInit",2,4346,-482.944977,-556.055786,-306.401611,-482.616943,0.000000,"PostInit"};
 item13[] = {"EndCondition",4,218,116.574257,-510.365356,206.574249,-427.530273,0.000000,"EndCondition"};
-item14[] = {"Feedback_1",2,250,116.823433,-742.144836,206.823456,-692.144836,0.000000,"Feedback"};
+item14[] = {"Feedback",2,250,116.823433,-742.144836,206.823456,-692.144836,0.000000,"Feedback"};
 item15[] = {"true",8,218,117.289719,-956.827026,207.289719,-906.827087,0.000000,"true"};
 item16[] = {"",7,210,-391.297516,-140.677734,-383.297516,-132.677734,0.000000,""};
 item17[] = {"MIght_need_Multiplayer",-1,250,-1072.988037,-314.517761,-606.910828,-189.184326,0.000000,"MIght need Multiplayer compatibility. Locality might be a issue"};
@@ -78,7 +78,7 @@ link16[] = {15,8};
 link17[] = {16,6};
 link18[] = {19,14};
 globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1433.603271,791.283325,-52.553467,-1646.394409,1234,884,1};
-window[] = {2,-1,-1,-1,-1,947,208,1232,208,3,1252};
+window[] = {2,-1,-1,-32000,-32000,921,182,1206,182,3,1252};
 *//*%FSM</HEAD>*/
 class FSM
 {
@@ -92,15 +92,17 @@ class FSM
                         itemno = 0;
                         init = /*%FSM<STATEINIT""">*/"_Minimum_Distance = 350;" \n
                          "_DeBug = false;" \n
-                         "_refreshRate = 2;" \n
-                         "Params [""_Minimum_Distance"", ""_DeBug"", ""_refreshRate""];" \n
+                         "_VehicleAutoRepair 	= true;" \n
+                         "iterationTimer		   = 1;;" \n
+                         "Params [""_Minimum_Distance"", ""_DeBug"", ""_VehicleAutoRepair""];" \n
                          "_time = time;" \n
                          "_Running = (MissionNamespace GetVariable ""Tally_FSM_RUnning"");" \n
                          "EndVehicleFSM_now = false;" \n
                          "" \n
                          "VehMinimumDistance 		= _Minimum_Distance;" \n
                          "FSMD3Bugger					= _DeBug;" \n
-                         "iterationTimer				= _refreshRate;"/*%FSM</STATEINIT""">*/;
+                         "VehicleAutoRepair			= _VehicleAutoRepair;" \n
+                         ""/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -134,13 +136,71 @@ class FSM
                 {
                         name = "Declaring_all_functions";
                         itemno = 2;
-                        init = /*%FSM<STATEINIT""">*/"Tally_Fnc_FlankPositions = {" \n
+                        init = /*%FSM<STATEINIT""">*/"" \n
+                         "Tally_Fnc_AssignFlankPositions = {" \n
+                         "params[""_Vehicle"", ""_EnAvgPos"", ""_Initiator""];" \n
+                         "" \n
+                         "private _Timer = time;" \n
+                         "if (IsNil ""_Initiator"")" \n
+                         "then{" \n
+                         "		private _script = [_Vehicle, _EnAvgPos] spawn Tally_Fnc_FlankPositions;" \n
+                         "		Waituntil {sleep 0.02; " \n
+                         "						((ScriptDone _Script)" \n
+                         "						or(time - _Timer > 3))" \n
+                         "					 };" \n
+                         "	}" \n
+                         "else{" \n
+                         "		waituntil{" \n
+                         "					sleep 0.1;" \n
+                         "					private _Loaded 	= (_Initiator GetVariable ""FlankPosLoaded"");" \n
+                         "					private _TimedOut 	= (time - _Timer > 4);" \n
+                         "					" \n
+                         "					if(_Loaded" \n
+                         "					or _TimedOut" \n
+                         "					or (IsNil ""_Loaded""))" \n
+                         "					exitWith{true};" \n
+                         "					false" \n
+                         "				  };" \n
+                         "					 " \n
+                         "		private _FlankPositions = (_Initiator GetVariable ""Positions"");" \n
+                         "				if(IsNil ""_FlankPositions"")" \n
+                         "				then{" \n
+                         "						_FlankPositions = [];" \n
+                         "					};" \n
+                         "		" \n
+                         "			if (count _FlankPositions > 4)then" \n
+                         "			{" \n
+                         "				_Vehicle SetVariable [""Positions"", _FlankPositions, true];" \n
+                         "				_Vehicle SetVariable [""FlankPosLoaded"", true, 		true];" \n
+                         "			}" \n
+                         "		" \n
+                         "		else{" \n
+                         "				private _script = [_Vehicle, _EnAvgPos] spawn Tally_Fnc_FlankPositions;" \n
+                         "				Waituntil 	{" \n
+                         "							sleep 0.02; " \n
+                         "							((ScriptDone _Script)" \n
+                         "							or(time - _Timer > 3))" \n
+                         "							};" \n
+                         "			};" \n
+                         "		" \n
+                         "		" \n
+                         "	};" \n
+                         "" \n
+                         "" \n
+                         "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_FlankPositions = {" \n
                          "params [""_Vehicle"", ""_EnAvgPos""];" \n
                          "private _Timer = time;" \n
                          "		{" \n
                          "			Private _arr = _x;" \n
-                         "			" \n
-                         "	private _Script =  _arr spawn Tally_Fnc_Scan_Area; diag_log format [""arr %1"", (_arr)];" \n
+                         "			private _Script =  _arr spawn Tally_Fnc_Scan_Area; diag_log format [""arr %1"", (_arr)];" \n
                          "	" \n
                          "			Waituntil {	" \n
                          "						sleep 0.02; " \n
@@ -162,28 +222,26 @@ class FSM
                          "" \n
                          "" \n
                          "" \n
-                         "Tally_Fnc_CuratorEH = {" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_BackUp = {" \n
+                         "params [""_Vehicle"", ""_Area""];" \n
+                         "_Vehicle sendSimpleCommand ""STOP"";" \n
+                         "" \n
+                         "for ""_I"" from 1 to 10 do" \n
                          "{" \n
-                         "_x addEventHandler [""CuratorObjectDeleted"", {" \n
-                         "	params [""_curator"", ""_entity""];" \n
-                         "private _Evading = _entity GetVariable ""Evading"";" \n
-                         "	if(FSMD3Bugger)" \n
-                         "	then{" \n
-                         "			if(!isnil ""_Evading"")" \n
-                         "			then{" \n
-                         "					Hint (parsetext format [""Be carefull deleting units while they are engaged / activated. <br/>This could lead to scripts not exiting properly""]);" \n
-                         "				};" \n
-                         "		};" \n
-                         "	" \n
-                         "}];" \n
-                         "}ForEach allCurators;" \n
-                         "" \n
-                         "" \n
+                         "	_Vehicle SetVariable [""ready"", false, true];" \n
+                         "	_Vehicle sendSimpleCommand ""BACK"";" \n
+                         "	if(count (crew _Vehicle) < 2)exitWith{};" \n
+                         "	sleep 1;" \n
                          "};" \n
                          "" \n
                          "" \n
-                         "" \n
-                         "" \n
+                         "_Vehicle SetVariable [""ready"", true, true];" \n
+                         "[_Vehicle, _Area] spawn Tally_Fnc_SoftMove;" \n
+                         "};" \n
                          "" \n
                          "" \n
                          "" \n
@@ -191,21 +249,29 @@ class FSM
                          "Tally_Fnc_QuickDecision = {" \n
                          "params [""_Vehicle"", ""_EnAvgPos""];" \n
                          "" \n
-                         "private _NextAction	= [_Vehicle, [[]], [[]]] call Tally_Fnc_Flank_Hide_Push;" \n
+                         "private _NextAction	= [_Vehicle] call Tally_Fnc_Flank_Hide_Push;" \n
                          "" \n
                          "" \n
                          "switch (_NextAction) do" \n
                          "{" \n
-                         "	case ""push"";	{ [_Vehicle, _EnAvgPos] spawn Tally_Fnc_SoftMove;};" \n
+                         "	case ""push"";	{ " \n
+                         "						[_Vehicle, _EnAvgPos] call Tally_Fnc_SoftMove;" \n
+                         "						_Vehicle setVariable [""currentAction"", 	""Attempting to push"", true];" \n
+                         "						_Vehicle SetVariable [""EvadePos"", _EnAvgPos, true];" \n
+                         "					};" \n
                          "	case ""flank"": 	{ " \n
-                         "						private _Area = (_Vehicle GetVariable ""Areas"") select (selectRandom [1,2]);" \n
-                         "						[_Vehicle, _Area] spawn Tally_Fnc_SoftMove;" \n
-                         "						[_Vehicle] call Tally_Fnc_DeploySmoke;" \n
+                         "						private _Area = ((_Vehicle GetVariable ""Areas"") select (selectRandom [1,2]) select 0);" \n
+                         "						[_Vehicle, _Area] call Tally_Fnc_SoftMove;" \n
+                         "						[_Vehicle] spawn Tally_Fnc_DeploySmoke;" \n
+                         "						_Vehicle setVariable [""currentAction"", 	""Attempting to flank"", true];" \n
+                         "						_Vehicle SetVariable [""EvadePos"", _Area, true];" \n
                          "					};" \n
                          "	case ""hide"";	{ " \n
-                         "						private _Area = (_Vehicle GetVariable ""Areas"") select 0;" \n
-                         "						[_Vehicle, _Area] spawn Tally_Fnc_SoftMove;" \n
-                         "						[_Vehicle] call Tally_Fnc_DeploySmoke;" \n
+                         "						private _Area = (((_Vehicle GetVariable ""Areas"") select 0) select 0);" \n
+                         "						[_Vehicle, _Area] call Tally_Fnc_SoftMove;" \n
+                         "						[_Vehicle] spawn Tally_Fnc_DeploySmoke;" \n
+                         "						_Vehicle setVariable [""currentAction"", 	""Attempting to hide"", true];" \n
+                         "						_Vehicle SetVariable [""EvadePos"", _Area, true];" \n
                          "					};" \n
                          "	default 		{};" \n
                          "};" \n
@@ -327,6 +393,7 @@ class FSM
                          "_Vehicle SetVariable [""NextPosMarkers"",		[], 											true];" \n
                          "_Vehicle SetVariable [""SelPosMarked"",		false, 											true];" \n
                          "_Vehicle SetVariable [""HiddenPosLoaded"",	false, 											true];" \n
+                         "_Vehicle SetVariable [""TwoTimesHideSearch"",	false, 											true];" \n
                          "_Vehicle SetVariable [""PushPosLoaded"",		false, 											true];" \n
                          "_Vehicle SetVariable [""timer"", 				_Timer, 										true];" \n
                          "_Vehicle SetVariable [""tim3r"", 				(systemTime select 1),							true];" \n
@@ -358,77 +425,64 @@ class FSM
                          "_Vehicle SetVariable [""LastMove"",			time + 5,										true];" \n
                          "_Vehicle SetVariable [""endedAlready"",		false,											true];" \n
                          "_Vehicle SetVariable [""lastRepair"",			time - 60,										true];" \n
+                         "_Vehicle SetVariable [""pathPos"",			[],												true];" \n
                          "" \n
                          "if(isnil ""_LastSmoke"")then	{" \n
                          "								_Vehicle SetVariable [""LastSmoke"", 		time - 120,			true];" \n
                          "								_Vehicle SetVariable [""LastSmokePos"",	(GetPos _Vehicle), 	true];" \n
                          "							}; " \n
+                         "private _Timer = time;" \n
+                         "" \n
                          "" \n
                          "" \n
                          "Private _Areas = [(getpos _Enemy), _Minimum_Distance, _Vehicle, _evasionDir] call Tally_Fnc_SearchAreas;" \n
                          "_Vehicle SetVariable [""Areas"", 	_Areas, true];" \n
-                         "{_x PushbackUnique _Vehicle}ForEach(_Vehicle GetVariable ""Areas"");" \n
                          "" \n
                          "" \n
                          "[_Vehicle, _EnAvgPos] call Tally_Fnc_QuickDecision;" \n
                          "" \n
-                         "" \n
-                         "private _Timer = time;" \n
-                         "if (IsNil ""_Initiator"")" \n
+                         "if(IsNil ""_Initiator"")" \n
                          "then{" \n
-                         "		private _script = [_Vehicle, _EnAvgPos] spawn Tally_Fnc_FlankPositions;" \n
-                         "		Waituntil {sleep 0.02; " \n
-                         "						((ScriptDone _Script)" \n
-                         "						or(time - _Timer > 3))" \n
-                         "					 };" \n
-                         "	}" \n
-                         "else{" \n
+                         "		private _script = [_Vehicle, _EnAvgPos] Spawn Tally_Fnc_AssignFlankPositions;" \n
                          "		Waituntil {" \n
                          "					sleep 0.02; " \n
-                         "					((_Initiator GetVariable ""FlankPosLoaded"")" \n
-                         "					or(time - _Timer > 4))" \n
-                         "				  };" \n
-                         "					 " \n
-                         "					 " \n
-                         "		private _FlankPositions = (_Initiator GetVariable ""Positions"");" \n
-                         "		" \n
-                         "			if (count _FlankPositions > 4)then" \n
-                         "			{" \n
-                         "				_Vehicle SetVariable [""Positions"", _FlankPositions, true];" \n
-                         "			}" \n
-                         "		" \n
-                         "		else{" \n
-                         "				private _script = [_Vehicle, _EnAvgPos] spawn Tally_Fnc_FlankPositions;" \n
-                         "				Waituntil 	{" \n
-                         "							sleep 0.02; " \n
-                         "							((ScriptDone _Script)" \n
-                         "							or(time - _Timer > 3))" \n
-                         "							};" \n
-                         "			};" \n
-                         "		" \n
-                         "		" \n
+                         "					((ScriptDone _Script)" \n
+                         "					or(time - _Timer > 5))" \n
+                         "				 };" \n
+                         "	}" \n
+                         "else{" \n
+                         "		private _script = [_Vehicle, _EnAvgPos, _Initiator] Spawn Tally_Fnc_AssignFlankPositions;" \n
+                         "		Waituntil {" \n
+                         "					sleep 0.02; " \n
+                         "					((ScriptDone _Script)" \n
+                         "					or(time - _Timer > 5))" \n
+                         "				 };" \n
                          "	};" \n
                          "" \n
                          "" \n
                          "" \n
+                         "" \n
+                         "" \n
+                         "private _GroupUnits = (Units (Group (Driver _Vehicle)));" \n
                          "Private _EvasionPos2 = (SelectRandom (_Vehicle GetVariable ""Positions""));" \n
-                         "_Timer		 = (_Vehicle getVariable ""tim3r"");" \n
+                         "" \n
                          "If !(IsNil ""_EvasionPos2"") then {_EvasionPos = _EvasionPos2};" \n
                          "_Vehicle SetVariable [""EvadePos"", 		_EvasionPos, true];" \n
                          "" \n
                          "" \n
-                         "_Group setBehaviourStrong ""AWARE"";" \n
-                         "_Crew 		DoMove _EvasionPos;" \n
-                         "_Vehicle 	DoMove _EvasionPos;" \n
-                         "" \n
-                         "{[_X, (_Vehicle GetVariable ""Cluster"")] spawn Tally_Fnc_Reveal} ForEach (Units (Group (Driver _Vehicle)));" \n
+                         "{[_X, (_Vehicle GetVariable ""Cluster"")] spawn Tally_Fnc_Reveal} ForEach _GroupUnits;" \n
                          "" \n
                          "" \n
-                         "_Script = [_Vehicle] spawn Tally_Fnc_GetHidePos;" \n
-                         "Waituntil {ScriptDone _Script};" \n
+                         "if(!IsNil ""_Initiator"") " \n
+                         "then{" \n
+                         "		_Script = [_Vehicle, _Initiator] spawn Tally_Fnc_GetHidePos;" \n
+                         "		" \n
+                         "	}" \n
+                         "else{" \n
+                         "		_Script = [_Vehicle] spawn Tally_Fnc_GetHidePos;" \n
+                         "		" \n
+                         "	};" \n
                          "" \n
-                         "" \n
-                         "[_Vehicle, _EnAvgPos] 	Spawn Tally_Fnc_FilterHidePos;" \n
                          "" \n
                          "	{(_Vehicle GetVariable ""AllSpotted"") pushBackUnique _X}forEach _KnownEnemies;" \n
                          "	{_X SetVariable [""Spotted"", true, true];}ForEach(_Vehicle GetVariable ""AllSpotted"");" \n
@@ -465,11 +519,32 @@ class FSM
                          "_Vehicle SetVariable [""ready"", true, true];" \n
                          "" \n
                          "if (_VehicleType == ""tank""" \n
-                         "or	_VehicleType == ""APC"") then {_Vehicle setEffectiveCommander driver _Vehicle};" \n
+                         "or	_VehicleType == ""APC"") then {" \n
+                         "									if(VehicleAutoRepair)" \n
+                         "									then{" \n
+                         "											_vehicle allowCrewInImmobile true;" \n
+                         "										};" \n
+                         "									" \n
+                         "								};" \n
                          "" \n
                          "" \n
                          "" \n
-                         "};Tally_Fnc_InitRepairs = {" \n
+                         "};" \n
+                         "" \n
+                         "Tally_Fnc_PlayerInVeh = {" \n
+                         "params[""_Vehicle""];" \n
+                         "Private _InVeh = false;" \n
+                         "" \n
+                         "{" \n
+                         "If (!((_X Getvariable ""bis_fnc_moduleRemoteControl_owner"") isEqualTo """")" \n
+                         "or (IsPlayer _X))" \n
+                         "then {_InVeh = true};" \n
+                         "}ForEach (Crew _Vehicle);" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "_InVeh};" \n
+                         "Tally_Fnc_InitRepairs = {" \n
                          "params[""_Vehicle""];" \n
                          "private _Crew 	= (_Vehicle GetVariable ""Crew"");" \n
                          "private _Driver = driver _Vehicle;" \n
@@ -617,7 +692,7 @@ class FSM
                          "																		_Success = false;" \n
                          "																	};" \n
                          "										private _VehDammage = (GetDammage _Vehicle);" \n
-                         "										if(_VehDammage < 0.6" \n
+                         "										if(_VehDammage < 0.5" \n
                          "										&&{CanMove _Vehicle" \n
                          "										&&{CanFire _Vehicle}}) exitWith{_Success = true};" \n
                          "										" \n
@@ -653,7 +728,7 @@ class FSM
                          "" \n
                          "if (!CanMove _Vehicle" \n
                          "or !CanFire _Vehicle" \n
-                         "or _Damage > 0.6)" \n
+                         "or _Damage > 0.5)" \n
                          "then{" \n
                          "	if(Alive _Vehicle)" \n
                          "	then{" \n
@@ -662,6 +737,7 @@ class FSM
                          "	};" \n
                          "" \n
                          "_NeedRepairs};" \n
+                         "" \n
                          "Tally_Fnc_FilterPos = {" \n
                          "Params [""_Vehicle"", ""_Center""];" \n
                          "" \n
@@ -686,9 +762,11 @@ class FSM
                          "								{" \n
                          "								[_Vehicle, ""ELLIPSE"", _X, 0, 10, ""ColorRed"", ""SOLID""] call Tally_Fnc_VehMarkers;" \n
                          "								} ForEach (_Vehicle GetVariable ""Positions"");" \n
+                         "								" \n
+                         "								systemChat format [""%1 flank positions left"", (count (_Vehicle GetVariable ""Positions""))];" \n
                          "						};" \n
                          "						" \n
-                         "Diag_Log format [""%1 positions left"", (count (_Vehicle GetVariable ""Positions""))];" \n
+                         "" \n
                          "};" \n
                          "" \n
                          "" \n
@@ -708,66 +786,192 @@ class FSM
                          "					_x select 1," \n
                          "				   (_x select 2) + 2.5];" \n
                          "	" \n
-                         "	if (terrainIntersect [_Pos, _Center]) Then 	{" \n
+                         "	if (terrainIntersect [_Pos, _Center]) " \n
+                         "										Then 	{" \n
                          "													_NewArr pushBackUnique _x;" \n
                          "												}" \n
                          "										else 	{" \n
                          "													_deletedEntries = (_deletedEntries + 1);" \n
                          "												};" \n
                          "" \n
-                         "sleep 0.01}ForEach (_Vehicle GetVariable ""HidePositions"");" \n
+                         "}ForEach (_Vehicle GetVariable ""HidePositions"");" \n
                          "" \n
-                         "If (FSMD3Bugger) then {systemChat format[""%1 deleted positions"", (_deletedEntries)];};" \n
-                         "_Vehicle SetVariable [""HidePositions"", _NewArr, true];" \n
+                         "" \n
+                         "" \n
+                         "_NewArr};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_FilterHidePos = {" \n
+                         "Params [""_Vehicle"", ""_Center""];" \n
+                         "" \n
+                         "private _FilteredPositions = [_Center, _Vehicle] call Tally_Fnc_Remove_NonTerrain_IntersectPos;" \n
+                         "_Vehicle SetVariable [""HidePositions"", " \n
+                         "					  _FilteredPositions, " \n
+                         "					  true];" \n
+                         "					  " \n
+                         "private _PosCount = count _FilteredPositions;" \n
+                         "" \n
+                         "" \n
+                         "if (_PosCount > 10)then	{" \n
+                         "							private _FinalPositions = [_Vehicle] Call Tally_Fnc_GetLowerThanTopPositions;" \n
+                         "							_Vehicle SetVariable [""HidePositions"", _FinalPositions, true];" \n
+                         "							_PosCount = (count (_Vehicle GetVariable ""HidePositions""));" \n
+                         "						" \n
+                         "if (_PosCount > 10)then	{" \n
+                         "							_FinalPositions = [(_Vehicle GetVariable ""HidePositions""), (_Vehicle GetVariable ""EvadePos"")] Call Tally_Fnc_GetClosePosArr;" \n
+                         "							_Vehicle SetVariable [""HidePositions"", _FinalPositions, true];" \n
+                         "						}};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "If (FSMD3Bugger) then {" \n
+                         "								{" \n
+                         "								[_Vehicle, ""ELLIPSE"", _X, 0, 10, ""ColorWhite"", ""SOLID""] call Tally_Fnc_VehMarkers;" \n
+                         "								} ForEach (_Vehicle GetVariable ""HidePositions"");" \n
+                         "						};" \n
+                         "" \n
+                         "_Vehicle SetVariable [""HiddenPosLoaded"",true, true];" \n
+                         "" \n
+                         "if(FSMD3Bugger)" \n
+                         "then{" \n
+                         "		systemChat format [""%1 Hide-Positions left"", (count (_Vehicle GetVariable ""HidePositions""))];" \n
+                         "	};" \n
+                         "" \n
                          "};" \n
                          "" \n
                          "" \n
                          "" \n
                          "" \n
                          "Tally_Fnc_GetHidePos = {" \n
-                         "params [""_Vehicle""];" \n
-                         "private _EvasionPos 	= (_Vehicle GetVariable ""EvadePos"");" \n
+                         "private _secondTry = false;" \n
+                         "params [""_Vehicle"", ""_Initiator"", ""_secondTry""];" \n
+                         "private _EvasionPos 	= ( _Vehicle GetVariable ""EvadePos"");" \n
+                         "Private _EnAvgPos 		= (_Vehicle GetVariable ""Centro"");" \n
                          "private _SelectedArea 	= ((_Vehicle GetVariable ""Areas"") select 0);" \n
                          "private _SecondArea 	= ((_Vehicle GetVariable ""Areas"") select 1);" \n
                          "private _ThirdArea 		= ((_Vehicle GetVariable ""Areas"") select 2);" \n
                          "private _Timer			= time + 3;" \n
-                         "private _Nil			= false;" \n
+                         "private _Nil				= false;" \n
+                         "private _CopiedPos		= false;" \n
                          "" \n
-                         "if (IsNil ""_SelectedArea"")exitWith	{" \n
-                         "										[""Cannot get Hide-Positions because the search-area is not defined""] call debugMessage;" \n
-                         "									};" \n
                          "" \n
-                         "_SelectedArea pushBack true;" \n
-                         "private _Script = _SelectedArea spawn Tally_Fnc_Scan_Area;" \n
-                         "waituntil	{" \n
-                         "				sleep 0.05;" \n
-                         "				private _ScriptDone = (scriptDone _Script);" \n
-                         "				private _TimedOut 	= (time > _Timer);" \n
-                         "						_Nil		= (IsNil ""_ScriptDone"");" \n
+                         "" \n
+                         "If(_secondTry)" \n
+                         "then{" \n
+                         "		_Vehicle SetVariable [""TwoTimesHideSearch"",	true, true];" \n
+                         "	};" \n
+                         "" \n
+                         "If(!IsNil ""_Initiator"")" \n
+                         "then{" \n
+                         "		waituntil{" \n
+                         "					sleep 0.1;" \n
+                         "					private _Loaded 	= (_Initiator GetVariable ""HiddenPosLoaded"");" \n
+                         "					private _TimedOut 	= (_Timer < time);" \n
+                         "					" \n
+                         "					if(_Loaded" \n
+                         "					or _TimedOut" \n
+                         "					or (IsNil ""_Loaded""))" \n
+                         "					exitWith{true};" \n
+                         "					false" \n
+                         "				  };" \n
+                         "		" \n
+                         "		private _FriendlyHidePositions = (_Initiator GetVariable ""HidePositions"");" \n
+                         "		" \n
+                         "		if(Isnil ""_FriendlyHidePositions"")exitWith{};" \n
+                         "		" \n
+                         "		if(((count _FriendlyHidePositions) > 5)" \n
+                         "		&&{(_Initiator GetVariable ""HiddenPosLoaded"")})" \n
+                         "		then{" \n
+                         "				_Vehicle SetVariable [""HidePositions"", _FriendlyHidePositions, 	true];" \n
+                         "				_Vehicle SetVariable [""HiddenPosLoaded"",true, 					true];" \n
+                         "				_CopiedPos = true;" \n
+                         "				[""Hiding positions were copied from "", _Initiator] call debugMessage;" \n
+                         "			};" \n
+                         "	};" \n
+                         "" \n
+                         "if!(_CopiedPos)" \n
+                         "then{" \n
+                         "		" \n
+                         "		private _Script = [_SelectedArea 	select 0," \n
+                         "						  _SelectedArea		select 1," \n
+                         "						  _Vehicle," \n
+                         "						  true] spawn Tally_Fnc_Scan_Area;" \n
+                         "		waituntil	{" \n
+                         "						sleep 0.05;" \n
+                         "						private _ScriptDone = (scriptDone _Script);" \n
+                         "						private _TimedOut 	= (time > _Timer);" \n
+                         "								_Nil		= (IsNil ""_ScriptDone"");" \n
+                         "								" \n
+                         "						if(_Nil " \n
+                         "						or _ScriptDone" \n
+                         "						or _TimedOut) " \n
+                         "						exitWith {" \n
+                         "									true" \n
+                         "								};" \n
+                         "						false" \n
+                         "					};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "		if (count (_Vehicle GetVariable ""HidePositions"") < 1)" \n
+                         "		then 	{" \n
+                         "					[""No hiding positions was found, scanning second area""] call debugMessage;" \n
+                         "					" \n
+                         "					_Script = [_SecondArea 	select 0," \n
+                         "								_SecondArea	select 1," \n
+                         "								_Vehicle," \n
+                         "								true] spawn Tally_Fnc_Scan_Area;" \n
                          "						" \n
-                         "				if(_Nil " \n
-                         "				or _ScriptDone" \n
-                         "				or _TimedOut) " \n
-                         "				exitWith {" \n
-                         "							true" \n
-                         "						};" \n
-                         "				false" \n
+                         "						waituntil	{" \n
+                         "						sleep 0.05;" \n
+                         "						private _ScriptDone = (scriptDone _Script);" \n
+                         "						private _TimedOut 	= (time > _Timer);" \n
+                         "								_Nil		= (IsNil ""_ScriptDone"");" \n
+                         "								" \n
+                         "						if(_Nil " \n
+                         "						or _ScriptDone" \n
+                         "						or _TimedOut) " \n
+                         "						exitWith {" \n
+                         "									true" \n
+                         "								};" \n
+                         "						false" \n
+                         "					};" \n
+                         "		" \n
+                         "					if (count (_Vehicle GetVariable ""HidePositions"") < 1)" \n
+                         "					then 	{" \n
+                         "								[""No hiding positions was found, scanning third area""] call debugMessage;" \n
+                         "								" \n
+                         "								_Script = [_ThirdArea 	select 0," \n
+                         "											_ThirdArea	select 1," \n
+                         "											_Vehicle," \n
+                         "											true] spawn Tally_Fnc_Scan_Area;" \n
+                         "									" \n
+                         "									waituntil	{" \n
+                         "									sleep 0.05;" \n
+                         "									private _ScriptDone = (scriptDone _Script);" \n
+                         "									private _TimedOut 	= (time > _Timer);" \n
+                         "											_Nil		= (IsNil ""_ScriptDone"");" \n
+                         "											" \n
+                         "									if(_Nil " \n
+                         "									or _ScriptDone" \n
+                         "									or _TimedOut) " \n
+                         "									exitWith {" \n
+                         "												true" \n
+                         "											};" \n
+                         "									false" \n
+                         "								};" \n
+                         "		" \n
+                         "							};" \n
                          "			};" \n
                          "" \n
-                         "if (count (_Vehicle GetVariable ""HidePositions"") < 1)then {" \n
-                         "															If(FSMD3Bugger)then{systemChat ""No hiding positions was found on the first try, scanning again""};" \n
-                         "															{" \n
-                         "																if!(_X IsEqualTo _SelectedArea) exitWith	{" \n
-                         "																											_Timer		= time + 3;" \n
-                         "																											_SecondArea = _X;" \n
-                         "																											_SecondArea pushBack true;" \n
-                         "																											_Script = _SecondArea spawn Tally_Fnc_Scan_Area;" \n
-                         "																											" \n
-                         "																										};" \n
-                         "															}ForEach " \n
-                         "															(_Vehicle GetVariable ""Areas"");" \n
-                         "														  };" \n
+                         "	};" \n
                          "" \n
+                         "" \n
+                         "[_Vehicle, _EnAvgPos] 	call Tally_Fnc_FilterHidePos;" \n
                          "};" \n
                          "" \n
                          "" \n
@@ -795,19 +999,19 @@ class FSM
                          "Private _Distance			=	(_area1Size * 1.6);" \n
                          "" \n
                          "Private _SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), _Dir, _Distance] call Tally_Fnc_CalcAreaLoc);" \n
-                         "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
+                         "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize, _Vehicle];" \n
                          "								" \n
                          "								If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, ""SolidBorder""] call Tally_Fnc_VehMarkers}; " \n
                          "								_Distance = (_area1Size * 0.8);" \n
                          "" \n
                          "		_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir + 67.5), _Distance] call Tally_Fnc_CalcAreaLoc);" \n
-                         "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
+                         "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize, _Vehicle];" \n
                          "" \n
                          "								If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, ""SolidBorder""] call Tally_Fnc_VehMarkers}; " \n
                          "" \n
                          "" \n
                          "		_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir - 67.5), _Distance] call Tally_Fnc_CalcAreaLoc);" \n
-                         "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize];" \n
+                         "								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize, _Vehicle];" \n
                          "" \n
                          "								If (FSMD3Bugger) then {[_Vehicle, ""RECTANGLE"", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, ""SolidBorder""] call Tally_Fnc_VehMarkers};" \n
                          "" \n
@@ -856,6 +1060,11 @@ class FSM
                          "if (isNil ""_Center"") " \n
                          "	then{" \n
                          "			private _Distance = (_Vehicle GetVariable ""MinDistEnemy"");" \n
+                         "			if(Isnil ""_Distance"")" \n
+                         "			then{" \n
+                         "					_Distance = VehMinimumDistance;" \n
+                         "				};" \n
+                         "			" \n
                          "			_Center = getPos ([_Distance, (Driver _Vehicle)] call Tally_Fnc_GetNearestEnemy);" \n
                          "			" \n
                          "		};" \n
@@ -871,8 +1080,8 @@ class FSM
                          "												(_Pos select 1)]) " \n
                          "												then {" \n
                          "												If !(_GetPushPos) then	{" \n
-                         "														if !(terrainIntersect " \n
-                         "															[_pos, _Center])  then 	{" \n
+                         "														if !(terrainIntersect [_Pos, _Center] )  " \n
+                         "																			then 	{" \n
                          "															" \n
                          "																						(_Vehicle GetVariable ""Positions"") PushbackUnique  _Pos;" \n
                          "																						If (FSMD3Bugger) then 	{[_Vehicle, ""RECTANGLE"", _Pos, 0, _Spacing, ""ColorOrange"", ""SolidBorder""] call Tally_Fnc_VehMarkers;};" \n
@@ -917,39 +1126,6 @@ class FSM
                          "" \n
                          "" \n
                          "" \n
-                         "Tally_Fnc_FilterHidePos = {" \n
-                         "Params [""_Vehicle"", ""_Center""];" \n
-                         "" \n
-                         "private _Script = [_Center, _Vehicle] spawn Tally_Fnc_Remove_NonTerrain_IntersectPos;" \n
-                         "waituntil{scriptDone _Script}; " \n
-                         "private _PosCount = (count (_Vehicle GetVariable ""HidePositions""));" \n
-                         "" \n
-                         "" \n
-                         "if (_PosCount > 10)then	{" \n
-                         "							private _FinalPositions = [_Vehicle] Call Tally_Fnc_GetLowerThanTopPositions;" \n
-                         "							_Vehicle SetVariable [""HidePositions"", _FinalPositions, true];" \n
-                         "							_PosCount = (count (_Vehicle GetVariable ""HidePositions""));" \n
-                         "						" \n
-                         "if (_PosCount > 10)then	{" \n
-                         "							_FinalPositions = [(_Vehicle GetVariable ""HidePositions""), (_Vehicle GetVariable ""EvadePos"")] Call Tally_Fnc_GetClosePosArr;" \n
-                         "							_Vehicle SetVariable [""HidePositions"", _FinalPositions, true];" \n
-                         "						}};" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "" \n
-                         "If (FSMD3Bugger) then {" \n
-                         "								{" \n
-                         "								[_Vehicle, ""ELLIPSE"", _X, 0, 10, ""ColorWhite"", ""SOLID""] call Tally_Fnc_VehMarkers;" \n
-                         "								} ForEach (_Vehicle GetVariable ""HidePositions"");" \n
-                         "						};" \n
-                         "" \n
-                         "" \n
-                         "					" \n
-                         "Diag_Log format [""%1 Hide-Positions left"", (count (_Vehicle GetVariable ""HidePositions""))];" \n
-                         "_Vehicle SetVariable [""HiddenPosLoaded"",true, true];" \n
-                         "};" \n
                          "" \n
                          "" \n
                          "" \n
@@ -1375,7 +1551,7 @@ class FSM
                          "private _HigherThanEn	= (_Vehicle GetVariable ""AvgEnemyAltitude"") > (round getTerrainHeightASL _Pos);" \n
                          "private _NearbyObjects	= nearestTerrainObjects [_Pos, [], 5];" \n
                          "private _Pos 			= [_Pos select 0, _Pos select 1, 1.5];" \n
-                         "		_Pos 			= ATLToASL _Pos;" \n
+                         "private	_ASLPos			= ATLToASL _Pos;" \n
                          "private _EnemiesInArea 	= (_Vehicle getVariable ""KnownEnemies"");" \n
                          "Private _LOSrank 		= [];" \n
                          "private _counter		= 0;" \n
@@ -1384,14 +1560,15 @@ class FSM
                          "" \n
                          "if(!Isnil ""_EnemiesInArea"")then{" \n
                          "									{" \n
-                         "										private _Enemy 		= _X;" \n
-                         "										private _EnemyPos 	= 	[(getPos _Enemy select 0)," \n
+                         "										private _Enemy 		 = 	_X;" \n
+                         "										private _EnemyPos 	 = 	[(getPos _Enemy select 0)," \n
                          "																 (getPos _Enemy select 1)," \n
                          "																 1.5];" \n
-                         "												_EnemyPos 	= ATLToASL _EnemyPos;" \n
+                         "										private _ASLEnemyPos = ATLToASL _EnemyPos;" \n
                          "										" \n
-                         "										if !(terrainIntersectASL [_Pos, _EnemyPos]) then 	{" \n
-                         "																								private _Intersections = lineIntersectsSurfaces [_Pos, _EnemyPos, _Enemy, _Vehicle, false, 3, ""VIEW"", ""NONE"", true];" \n
+                         "										if !(terrainIntersect [_Pos, _EnemyPos]) " \n
+                         "																					then 	{" \n
+                         "																								private _Intersections = lineIntersectsSurfaces [_ASLPos, _ASLEnemyPos, _Enemy, _Vehicle, false, 3, ""VIEW"", ""NONE"", true];" \n
                          "																								_LOSrank pushBack (count _Intersections);" \n
                          "																							}" \n
                          "																					else	{" \n
@@ -1449,6 +1626,7 @@ class FSM
                          "	};" \n
                          "" \n
                          "[_Vehicle] call Tally_Fnc_RemoveVehicleVars;" \n
+                         "_vehicle allowCrewInImmobile true;" \n
                          "(Gunner _Vehicle) doWatch objNull;" \n
                          "};" \n
                          "" \n
@@ -1554,7 +1732,7 @@ class FSM
                          "params [""_Vehicle""];" \n
                          "" \n
                          "" \n
-                         "" \n
+                         "			_Vehicle SetVariable [""TwoTimesHideSearch"",nil, true];" \n
                          "			_Vehicle SetVariable [""LastConditionCheck"",nil, true];" \n
                          "			_Vehicle SetVariable [""initiated"",		nil, true];" \n
                          "			_Vehicle SetVariable [""hiding"", 		nil, true];" \n
@@ -1589,6 +1767,8 @@ class FSM
                          "			_Vehicle setVariable [""EndAttempts"", 	nil, true];" \n
                          "			_Vehicle SetVariable [""endedAlready"", 	nil, true];" \n
                          "			_Vehicle SetVariable [""FlankPosLoaded"", nil, true];" \n
+                         "			_Vehicle SetVariable [""pathPos"",		nil, true];" \n
+                         "			" \n
                          "" \n
                          "{_X SetVariable [""Spotted"", nil, true];}ForEach(_Vehicle GetVariable ""AllSpotted"");" \n
                          "_Vehicle setVariable [""AllSpotted"", 	nil, true];" \n
@@ -1615,7 +1795,7 @@ class FSM
                          "Private _LastCheck 			= (_Vehicle getVariable ""LastConditionCheck"");" \n
                          "private _CurrentAction		= (_Vehicle getVariable ""currentAction"");" \n
                          "private _TimeSinceInit		= time - (_Vehicle getVariable ""initiated"");" \n
-                         "private _endstatus			= [""Victory"", ""Defeat"", ""Broken"", ""Timed out"", ""Arrived""];" \n
+                         "private _endstatus			= [""Victory"", ""Defeat"", ""Broken"", ""Timed out"", ""Arrived"", ""Assesing situation""];" \n
                          "" \n
                          "" \n
                          "if(!Isnil ""_CurrentAction""" \n
@@ -1625,6 +1805,7 @@ class FSM
                          "															_Vehicle SetVariable [""endedAlready"", true, true];" \n
                          "															[_Vehicle, _CurrentAction] spawn ExitEnd;" \n
                          "														};" \n
+                         "if([_Vehicle] call Tally_Fnc_PlayerInVeh)	exitWith	{[_Vehicle, ""Player is controlling this vehicle""] spawn ExitEnd};" \n
                          "if (_Vehicle GetVariable ""repairing"")		exitWith	{[_Vehicle, ""none""] spawn ExitEnd};" \n
                          "if (_Vehicle getVariable ""EndingScript"") 	exitWith 	{[_Vehicle, ""none""] spawn ExitEnd};" \n
                          "if (!Alive _Vehicle)						exitWith	{[_Vehicle, ""Defeat""] spawn ExitEnd};" \n
@@ -1659,9 +1840,14 @@ class FSM
                          "" \n
                          "_Vehicle SetVariable [""LastConditionCheck"",	time + iterationTimer, true];" \n
                          "" \n
-                         "private _Script = [_Vehicle] spawn Tally_Fnc_InitRepairs;" \n
-                         "waituntil {sleep 0.25; (scriptDone _Script or time > _RepairTimer)};" \n
-                         "If !([_Vehicle] call Tally_Fnc_Is_Evading)exitWith{[_Vehicle, ""none""] spawn ExitEnd};" \n
+                         "" \n
+                         "" \n
+                         "if(VehicleAutoRepair)" \n
+                         "then{" \n
+                         "		private _Script = [_Vehicle] spawn Tally_Fnc_InitRepairs;" \n
+                         "		waituntil {sleep 0.25; (scriptDone _Script or time > _RepairTimer)};" \n
+                         "		If !([_Vehicle] call Tally_Fnc_Is_Evading)exitWith{[_Vehicle, ""none""] spawn ExitEnd};" \n
+                         "	};" \n
                          "" \n
                          "_CrewStatus  		= [_Vehicle] call Tally_Fnc_CheckCrewStatus;" \n
                          "" \n
@@ -1732,7 +1918,17 @@ class FSM
                          "																																		[_Vehicle] spawn Tally_Fnc_InitHiding;" \n
                          "																																	}" \n
                          "																															  else	{" \n
-                         "																																		If(FSMD3Bugger)then{systemChat ""Cannot initiate hiding, no hiding positions found"";};" \n
+                         "																																		if(!(_Vehicle GetVariable ""TwoTimesHideSearch""))" \n
+                         "																																		then{" \n
+                         "																																				[_Vehicle, nil, true] spawn Tally_Fnc_GetHidePos;" \n
+                         "																																				[""no hiding positions found, rescanning""] call debugMessage;" \n
+                         "																																			}" \n
+                         "																																		else{" \n
+                         "																																				[""Cannot initiate hiding, no hiding positions found""] call debugMessage;" \n
+                         "																																			};" \n
+                         "																																		" \n
+                         "																																		" \n
+                         "																																		" \n
                          "																																	};" \n
                          "																								}" \n
                          "																							else{" \n
@@ -1754,7 +1950,7 @@ class FSM
                          "																															or(!Alive _Vehicle)" \n
                          "																															or(_Timer < time ))};" \n
                          "																															" \n
-                         "																															If !([_Vehicle] call Tally_Fnc_Is_Evading)exitWith{[_Vehicle, ""none""] spawn ExitEnd};" \n
+                         "																															If !([_Vehicle] call Tally_Fnc_Is_Evading)exitWith{};" \n
                          "																															[_Vehicle] spawn Tally_Fnc_InitPush;" \n
                          "																														};" \n
                          "																									   };" \n
@@ -1762,11 +1958,13 @@ class FSM
                          "																			 };" \n
                          "											" \n
                          "											if (_NextAction == ""flank"") then 	{" \n
+                         "																					private _FlankPos = (selectRandom(_Vehicle GetVariable ""Positions""));" \n
                          "																					_Vehicle setVariable [""currentAction"", 	_NextAction, true]; " \n
+                         "																					_Vehicle setVariable [""EvadePos"", _FlankPos,  true];" \n
                          "																				};" \n
                          "											if (_NextAction == ""end"") then 	{" \n
                          "																					_Vehicle setVariable [""currentAction"", 	_NextAction, true];" \n
-                         "																					[_Vehicle, ""Some Units not registered""] spawn ExitEnd;" \n
+                         "																					[_Vehicle, ""Ending FSM""] spawn ExitEnd;" \n
                          "																				};" \n
                          "											" \n
                          "											if (_NextAction == ""scan"") then 	{" \n
@@ -1920,7 +2118,8 @@ class FSM
                          "if (alive (Gunner _Vehicle)) then {(Gunner _Vehicle) doWatch objNull};" \n
                          "sleep 20;" \n
                          "_Vehicle SetVariable [""Engaging"", nil, true];" \n
-                         "};Tally_Fnc_CheckCrewStatus = {" \n
+                         "};" \n
+                         "Tally_Fnc_CheckCrewStatus = {" \n
                          "params[""_Vehicle""];" \n
                          "" \n
                          "" \n
@@ -2029,6 +2228,7 @@ class FSM
                          "if!(_x == _OriginalDriver " \n
                          "or  _x == _OriginalGunner)then{_thirdMan = _x};" \n
                          "}ForEach _OriginalCrew;" \n
+                         "if(_thirdMan isEqualTo """")then{_thirdMan = (Commander _Vehicle)};" \n
                          "" \n
                          "switch _Status do" \n
                          "{" \n
@@ -2237,21 +2437,37 @@ class FSM
                          "" \n
                          "Tally_Fnc_Flank_Hide_Push = {" \n
                          "params [""_Vehicle"", ""_EnemyForce"", ""_FriendlyForce""];" \n
-                         "private _Action		= ""hide"";" \n
-                         "Private _Nounits	= true;" \n
-                         "private _EnemySide	= (Side(selectRandom (_Vehicle GetVariable ""KnownEnemies"")));" \n
-                         "private _DataChecked = _Vehicle GetVariable ""Viable"";" \n
+                         "private _Action			= ""hide"";" \n
+                         "Private _Nounits		= true;" \n
+                         "private _EnemySide		= (Side(selectRandom (_Vehicle GetVariable ""KnownEnemies"")));" \n
+                         "private _VehicleType	= (_Vehicle GetVariable ""vehicleType"");" \n
                          "" \n
+                         "private _NoPushVar	= (_Vehicle GetVariable ""noPush"");" \n
+                         "private _NoflankVar	= (_Vehicle GetVariable ""noFlank"");" \n
+                         "private _NoHideVar	= (_Vehicle GetVariable ""noHide"");" \n
                          "" \n
-                         "" \n
+                         "Private _NoPush		= (!Isnil ""_NoPushVar"" 	&&{_NoPushVar});" \n
+                         "Private _Noflank	= (!Isnil ""_NoflankVar"" &&{_NoflankVar});" \n
+                         "Private _NoHide		= (!Isnil ""_NoHideVar"" 	&&{_NoHideVar});" \n
+                         "private _NoOptions	= (_NoPush " \n
+                         "					&&{_Noflank " \n
+                         "					&& {_NoHide}});" \n
                          "" \n
                          "_EnemySide = [""enemy: "", _EnemySide] joinString """";" \n
                          "" \n
                          "private _FriendSide	= (side _Vehicle);" \n
                          "_FriendSide = [""Friend: "", _FriendSide] joinString """";" \n
                          "" \n
-                         "{if(Count _x > 0)then{_Nounits = false}}ForEach _EnemyForce;" \n
-                         "{if(Count _x > 0)then{_Nounits = false}}ForEach _FriendlyForce;" \n
+                         "if(isNil ""_FriendlyForce""" \n
+                         "&&{isNil ""_FriendlyForce""})" \n
+                         "then{_Nounits = false}" \n
+                         "else{" \n
+                         "		{if(Count _x > 0)then{_Nounits = false}}ForEach _EnemyForce;" \n
+                         "		{if(Count _x > 0)then{_Nounits = false}}ForEach _FriendlyForce;" \n
+                         "	};" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "" \n
                          "if!(_Nounits)								then{" \n
@@ -2274,6 +2490,8 @@ class FSM
                          "													If 	(_StrengthBalance > 130)" \n
                          "													then{" \n
                          "															_Action	= ""push"";" \n
+                         "															" \n
+                         "															" \n
                          "														};" \n
                          "" \n
                          "													if((_DefensiveCapacity 	==	1234567890)" \n
@@ -2291,7 +2509,69 @@ class FSM
                          "													Diag_Log ""________________________________"";" \n
                          "												};" \n
                          "" \n
+                         "If(_VehicleType == ""Artillery"")" \n
+                         "then{" \n
+                         "		_Action	= ""hide"";" \n
+                         "	};" \n
                          "" \n
+                         "" \n
+                         "if(_Action == ""push"")" \n
+                         "then 	{" \n
+                         "			if(_NoPush)" \n
+                         "			then{" \n
+                         "				if!(_Noflank)" \n
+                         "				then{" \n
+                         "						_Action	= ""flank"";" \n
+                         "					}" \n
+                         "				else{" \n
+                         "						if!(_NoHide)" \n
+                         "						then{" \n
+                         "								_Action	= ""hide"";" \n
+                         "							};" \n
+                         "					};" \n
+                         "				};" \n
+                         "		};" \n
+                         "" \n
+                         "if(_Action == ""flank"")" \n
+                         "then 	{" \n
+                         "			if(_Noflank)" \n
+                         "			then{" \n
+                         "				if!(_NoPush)" \n
+                         "				then{" \n
+                         "						_Action	= ""push"";" \n
+                         "					}" \n
+                         "				else{" \n
+                         "						if!(_NoHide)" \n
+                         "						then{" \n
+                         "								_Action	= ""hide"";" \n
+                         "							};" \n
+                         "					};" \n
+                         "				};" \n
+                         "		};" \n
+                         "" \n
+                         "if(_Action == ""hide"")" \n
+                         "then 	{" \n
+                         "			if(_NoHide)" \n
+                         "			then{" \n
+                         "				if!(_Noflank)" \n
+                         "				then{" \n
+                         "						_Action	= ""flank"";" \n
+                         "					}" \n
+                         "				else{" \n
+                         "						if!(_NoPush)" \n
+                         "						then{" \n
+                         "								_Action	= ""push"";" \n
+                         "							};" \n
+                         "					};" \n
+                         "				};" \n
+                         "		};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "if(_NoOptions)" \n
+                         "then{" \n
+                         "		_Action = ""end"";" \n
+                         "	};" \n
                          "" \n
                          "_Action};" \n
                          "" \n
@@ -2304,6 +2584,12 @@ class FSM
                          "private _TotalArmedCars			= [];" \n
                          "private _TotalAPCs 				= [];" \n
                          "private _TotalTanks				= [];" \n
+                         "private _TotalArtillery			= []; " \n
+                         "private _TotalTurrets			= []; " \n
+                         "" \n
+                         "private _UnarmedChoppers		= []; " \n
+                         "private _LightChoppers			= []; " \n
+                         "private _HeavyChoppers			= []; " \n
                          "" \n
                          "	{" \n
                          "" \n
@@ -2318,19 +2604,39 @@ class FSM
                          "								else	{" \n
                          "											private _VehicleType = [_X] call Tally_Fnc_GetVehicleType;" \n
                          "											" \n
-                         "											if(_VehicleType == ""unarmedCar"")then{_UnarmedCars 		pushBackUnique _x};" \n
-                         "											if(_VehicleType == ""armedCar"")	then{_TotalArmedCars	pushBackUnique _x};" \n
-                         "											if(_VehicleType == ""APC"")		then{_TotalAPCs			pushBackUnique _x};" \n
-                         "											if(_VehicleType == ""tank"")		then{_TotalTanks		pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""unarmedCar"")		then{_UnarmedCars 		pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""armedCar"")			then{_TotalArmedCars	pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""APC"")				then{_TotalAPCs			pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""tank"")				then{_TotalTanks		pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""Artillery"")			then{_TotalArtillery	pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""turret"")			then{_TotalTurrets		pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""Unarmed Chopper"")	then{_UnarmedChoppers	pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""Light Chopper"")		then{_LightChoppers		pushBackUnique _x};" \n
+                         "											if(_VehicleType == ""Heavy Chopper"")		then{_HeavyChoppers		pushBackUnique _x};" \n
                          "												" \n
                          "										};" \n
                          "										" \n
                          "										" \n
-                         "									};" \n
+                         "							};" \n
                          "	}ForEach _Array;" \n
                          "" \n
                          "" \n
                          "Private _AT_Capacity		= 0;" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "_AT_Capacity = (_AT_Capacity + (0.01 * 	(Count _UnarmedCars)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (0.05 * 	(Count _Totalinf)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (0.05 * 	(Count _UnarmedChoppers)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (1 * 	(Count _TotalArtillery)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (2 * 	(Count _TotalArmedCars)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (2 * 	(Count _TotalTurrets)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (2 * 	(Count _LightChoppers)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (3 * 	(Count _TotalATinf)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (4 * 	(Count _TotalAPCs)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (6 * 	(Count _TotalTanks)));" \n
+                         "_AT_Capacity = (_AT_Capacity + (6 * 	(Count _HeavyChoppers)));" \n
                          "" \n
                          "Diag_Log ""________________________________"";" \n
                          "Diag_Log ""________________________________"";" \n
@@ -2342,18 +2648,7 @@ class FSM
                          "Diag_Log FORMAT[""TotalAPCs: %1"", 		(Count _TotalAPCs)];" \n
                          "Diag_Log FORMAT[""TotalTanks: %1"", 		(Count _TotalTanks)];" \n
                          "" \n
-                         "" \n
-                         "_AT_Capacity = (_AT_Capacity + (0.01 * 	(Count _UnarmedCars)));" \n
-                         "" \n
-                         "_AT_Capacity = (_AT_Capacity + (0.05 * 	(Count _Totalinf)));" \n
-                         "Diag_Log FORMAT[""AT Capacity: %1"", (_AT_Capacity)];" \n
-                         "_AT_Capacity = (_AT_Capacity + (2 * 	(Count _TotalArmedCars)));" \n
-                         "Diag_Log FORMAT[""AT Capacity: %1"", (_AT_Capacity)];" \n
-                         "_AT_Capacity = (_AT_Capacity + (2 * 	(Count _TotalATinf)));" \n
-                         "Diag_Log FORMAT[""AT Capacity: %1"", (_AT_Capacity)];" \n
-                         "_AT_Capacity = (_AT_Capacity + (4 * 	(Count _TotalAPCs)));" \n
-                         "Diag_Log FORMAT[""AT Capacity: %1"", (_AT_Capacity)];" \n
-                         "_AT_Capacity = (_AT_Capacity + (6 * 	(Count _TotalTanks)));" \n
+                         "Diag_Log FORMAT["""", 		(Count _TotalTanks)];" \n
                          "Diag_Log FORMAT[""AT Capacity: %1"", (_AT_Capacity)];" \n
                          "" \n
                          "Diag_Log ""________________________________"";" \n
@@ -3136,18 +3431,178 @@ class FSM
                          "};" \n
                          "" \n
                          "" \n
+                         "Tally_Fnc_GetVehicleWeapons ={" \n
+                         "params [""_Vehicle""];" \n
+                         "Private _allWeapons 	= weapons _Vehicle;" \n
                          "" \n
-                         "AreaScan = false;" \n
-                         "Version	 = 0.99;" \n
-                         "deathGroup = createGroup civilian;" \n
-                         "HintTimer			= 180;" \n
-                         "TenSecondTaskTimer	= 0;" \n
-                         "{[_X] call Tally_Fnc_AddEh}ForEach Vehicles;" \n
-                         "[] call Tally_Fnc_CuratorEH;" \n
+                         "" \n
+                         "{" \n
+                         "	_allWeapons pushBackUnique _X;" \n
+                         "}ForEach (_Vehicle weaponsTurret [-1]);" \n
+                         "" \n
+                         "_allWeapons};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetChopperType = {" \n
+                         "params [""_Chopper""];" \n
+                         "Private _ChopperWeapons = [_Chopper] call Tally_Fnc_GetVehicleWeapons;" \n
+                         "private _Unidentified_W = [];" \n
+                         "private _ChopperType 	= ""Unarmed Chopper"";" \n
+                         "private _LightWeapons 	= 0;" \n
+                         "Private _HeavyWeapons 	= 0;" \n
+                         "Private _AAcapability 	= 0;" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "Private _AllCfgWeapons = [	""CUP_Vacannon_Yakb_veh""," \n
+                         "							""CUP_Vmlauncher_AT9_veh""," \n
+                         "							""CUP_Vhmg_PKT_veh_Noeject""," \n
+                         "							""CUP_Vhmg_PKT_veh2""," \n
+                         "							""CUP_Vhmg_PKT_veh3""," \n
+                         "							""CUP_weapon_mastersafe""," \n
+                         "							""CUP_Laserdesignator_mounted""," \n
+                         "							""CUP_Vacannon_M230_veh""," \n
+                         "							""CUP_Vmlauncher_AGM114L_veh""," \n
+                         "							""CUP_Vmlauncher_AIM9L_veh_1Rnd""," \n
+                         "							""CUP_M134""," \n
+                         "							""CUP_M134_2""," \n
+                         "							""CUP_Vlmg_L7A2_veh""," \n
+                         "							""Laserdesignator_mounted""," \n
+                         "							""gatling_20mm""," \n
+                         "							""missiles_ASRAAM""," \n
+                         "							""missiles_DAGR""," \n
+                         "							""CUP_Vacannon_M197_veh""," \n
+                         "							""CUP_Vmlauncher_AGM114K_veh""," \n
+                         "							""LMG_Minigun_Transport""," \n
+                         "							""LMG_Minigun_Transport2""," \n
+                         "							""CUP_Vmlauncher_TOW_veh""," \n
+                         "							""CUP_Vmlauncher_AT2_veh""," \n
+                         "							""FakeHorn""," \n
+                         "							""CUP_Vacannon_GI2_veh""," \n
+                         "							""CUP_Vmlauncher_AT6_veh""," \n
+                         "							""CUP_Vmlauncher_AT16_veh""," \n
+                         "							""CUP_Vacannon_2A42_Ka50""," \n
+                         "							""CUP_M32_heli""," \n
+                         "							""CUP_M240_uh1h_right_veh_W""," \n
+                         "							""CUP_M240_uh1h_left_veh_W""," \n
+                         "							""gatling_30mm""," \n
+                         "							""missiles_SCALPEL""," \n
+                         "							""rockets_Skyfire""," \n
+                         "							""CUP_Vlmg_M134_veh""," \n
+                         "							""CUP_Vlmg_M134_veh2""," \n
+                         "							""CUP_Vhmg_GAU21_MH60_Left""," \n
+                         "							""CUP_Vhmg_GAU21_MH60_Right""," \n
+                         "							""CUP_M240_veh_W""," \n
+                         "							""CUP_M240_veh2_W""," \n
+                         "							""CMFlareLauncher""," \n
+                         "							""CUP_Vmlauncher_S5_veh""," \n
+                         "							""CUP_Vmlauncher_S8_CCIP_veh""," \n
+                         "							""M134_minigun""," \n
+                         "							""missiles_DAR""," \n
+                         "							""CUP_Vmlauncher_FFAR_veh""," \n
+                         "							""CUP_DL_CMFlareLauncher""," \n
+                         "							""CUP_Vlmg_M134_A_veh""," \n
+                         "							""CUP_Vacannon_M621_AW159_veh""," \n
+                         "							""CUP_Vmlauncher_CRV7_veh""];" \n
+                         "" \n
+                         "private _noWeapon 	  = [" \n
+                         "							""FakeHorn""," \n
+                         "							""Laserdesignator_mounted""," \n
+                         "							""CUP_weapon_mastersafe""," \n
+                         "							""CUP_Laserdesignator_mounted""," \n
+                         "							""CMFlareLauncher""," \n
+                         "							""CUP_DL_CMFlareLauncher""" \n
+                         "						];" \n
+                         "" \n
+                         "private _Guns = 	[" \n
+                         "							""LMG_Minigun_Transport""," \n
+                         "							""LMG_Minigun_Transport2""," \n
+                         "							""CUP_Vlmg_M134_veh""," \n
+                         "							""CUP_Vlmg_M134_veh2""," \n
+                         "							""CUP_Vhmg_GAU21_MH60_Left""," \n
+                         "							""CUP_Vhmg_GAU21_MH60_Right""," \n
+                         "							""CUP_M240_veh_W""," \n
+                         "							""CUP_M240_veh2_W""," \n
+                         "							""CUP_M240_uh1h_right_veh_W""," \n
+                         "							""CUP_M240_uh1h_left_veh_W""," \n
+                         "							""gatling_30mm""," \n
+                         "							""CUP_M32_heli""," \n
+                         "							""CUP_M134""," \n
+                         "							""CUP_M134_2""," \n
+                         "							""CUP_Vlmg_L7A2_veh""," \n
+                         "							""gatling_20mm""," \n
+                         "							""CUP_Vhmg_PKT_veh_Noeject""," \n
+                         "							""CUP_Vhmg_PKT_veh2""," \n
+                         "							""CUP_Vhmg_PKT_veh3""," \n
+                         "							""M134_minigun""," \n
+                         "							""CUP_Vlmg_M134_A_veh""" \n
+                         "					];" \n
+                         "private _cannons = 	[" \n
+                         "						""CUP_Vacannon_Yakb_veh""," \n
+                         "						""CUP_Vmlauncher_AT9_veh""," \n
+                         "						""CUP_Vacannon_M230_veh""," \n
+                         "						""CUP_Vacannon_2A42_Ka50""," \n
+                         "						""CUP_Vacannon_GI2_veh""," \n
+                         "						""CUP_Vacannon_M197_veh""," \n
+                         "						""CUP_Vacannon_M621_AW159_veh""" \n
+                         "					];" \n
+                         "" \n
+                         "private _Rockets	 =	[" \n
+                         "							""rockets_Skyfire""," \n
+                         "							""CUP_Vmlauncher_S5_veh""," \n
+                         "							""CUP_Vmlauncher_S8_CCIP_veh""," \n
+                         "							""CUP_Vmlauncher_FFAR_veh""," \n
+                         "							""CUP_Vmlauncher_CRV7_veh""" \n
+                         "						];" \n
+                         "" \n
+                         "private _ATmisiles = [" \n
+                         "						""CUP_Vmlauncher_AGM114L_veh""," \n
+                         "						""missiles_DAGR""," \n
+                         "						""CUP_Vmlauncher_AGM114K_veh""," \n
+                         "						""CUP_Vmlauncher_TOW_veh""," \n
+                         "						""CUP_Vmlauncher_AT2_veh""," \n
+                         "						""CUP_Vmlauncher_AT6_veh""," \n
+                         "						""CUP_Vmlauncher_AT16_veh""," \n
+                         "						""missiles_SCALPEL""," \n
+                         "						""missiles_DAR""" \n
+                         "					];" \n
+                         "" \n
+                         "private _AAmisiles = [" \n
+                         "						""CUP_Vmlauncher_AIM9L_veh_1Rnd""," \n
+                         "						""missiles_ASRAAM""" \n
+                         "					];" \n
+                         "" \n
+                         "{" \n
+                         "	if!(_X in _AllCfgWeapons)then{_Unidentified_W pushBack _X};" \n
+                         "	" \n
+                         "	if(_X in _Guns)		then{_LightWeapons = (_LightWeapons + 1)};" \n
+                         "	if(_X in _cannons)	then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
+                         "	if(_X in _Rockets)	then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
+                         "	if(_X in _ATmisiles)then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
+                         "	if(_X in _AAmisiles)then{_AAcapability = (_AAcapability + 1)};" \n
+                         "" \n
+                         "" \n
+                         "}ForEach _ChopperWeapons;" \n
+                         "" \n
+                         "if(Count _Unidentified_W > 0)then	{" \n
+                         "										[""We could not identify the following chopper weapons: "", _Unidentified_W] call debugMessage; " \n
+                         "										[""they have been copied to clipBoard""] call debugMessage; " \n
+                         "										copyToClipboard str _Unidentified_W;" \n
+                         "									};" \n
+                         "" \n
+                         "if(_LightWeapons > 0)then{_ChopperType 	= ""Light Chopper""};" \n
+                         "if(_HeavyWeapons > 0)then{_ChopperType = ""Heavy Chopper""};" \n
+                         "" \n
+                         "" \n
+                         "_ChopperType};" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "Tally_Fnc_TaskManager = {" \n
                          "" \n
-                         "private _ScriptsRunning		= (diag_activeScripts select 0);" \n
+                         "" \n
                          "" \n
                          "					{" \n
                          "						private _Vehicle = _X;" \n
@@ -3162,14 +3617,18 @@ class FSM
                          "																	};" \n
                          "						If (_x getVariable ""Evading""" \n
                          "						&&{(_x getVariable ""ready"")" \n
-                         "						&&{true }}) 	then 	{													" \n
+                         "						&&{true }}) 	" \n
+                         "						then 	{													" \n
+                         "									" \n
+                         "									private _Timer = time + iterationTimer;" \n
+                         "									private _Script = [_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
+                         "									waituntil {sleep 0.02; (scriptDone _Script or time > _Timer)};" \n
+                         "									sleep 0.1;" \n
                          "																			" \n
-                         "																			private _Timer = time + iterationTimer;" \n
-                         "																			private _Script = [_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
-                         "																			waituntil {sleep 0.02; (scriptDone _Script or time > _Timer)};" \n
-                         "																			" \n
-                         "																			" \n
-                         "																		};" \n
+                         "								}" \n
+                         "						else 	{" \n
+                         "								" \n
+                         "								};" \n
                          "					sleep 0.05;" \n
                          "					} ForEach vehicles;" \n
                          "					" \n
@@ -3205,10 +3664,13 @@ class FSM
                          "														" \n
                          "													" \n
                          "													};" \n
+                         "" \n
+                         "ScriptsRunningDOC		= (diag_activeScripts select 0);" \n
+                         "" \n
                          "if(FSMD3Bugger" \n
-                         "&&{_ScriptsRunning > 35})" \n
+                         "&&{ScriptsRunningDOC > 50})" \n
                          "then{" \n
-                         "		Hint (parsetext format [""!!!Warning!!!<br/>%1 scripts are running at the same time <br/>You might experience some performance issues."", (_ScriptsRunning)]);" \n
+                         "		Hint (parsetext format [""%1 scripts are running at the same time <br/>You might experience some performance issues.<br/>Unless u got a BEAST pc"", (ScriptsRunningDOC)]);" \n
                          "	};" \n
                          "};" \n
                          "" \n
@@ -3349,14 +3811,84 @@ class FSM
                          "private _CfgName		= (TypeOf _Vehicle);" \n
                          "private _parentType		= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 2);" \n
                          "private _Firstparent	= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 1);" \n
+                         "private _Cousin			= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 0);" \n
                          "" \n
                          "" \n
                          "private _TankCfgNames = [" \n
                          "							""B_T_MBT_01_TUSK_F""" \n
                          "						];" \n
                          "" \n
+                         "private _ArtyParents =	[""rhsgref_ins_2s1""," \n
+                         "						""rhsgref_cdf_reg_d30_at""," \n
+                         "						""rhsgref_cdf_2s1""," \n
+                         "						""rhsgref_cdf_reg_M252""," \n
+                         "						""rhsgref_ins_d30""," \n
+                         "						""I_E_Truck_02_MRL_F""," \n
+                         "						""rhsgref_tla_g_2b14""," \n
+                         "						""rhsgref_cdf_b_2s1""," \n
+                         "						""B_MBT_01_arty_F""," \n
+                         "						""B_MBT_01_mlrs_F""," \n
+                         "						""B_T_MBT_01_arty_F""," \n
+                         "						""rhsgref_ins_d30_at""," \n
+                         "						""rhsgref_ins_2b14""," \n
+                         "						""O_MBT_02_arty_F""," \n
+                         "						""rhs_9k79""," \n
+                         "						""rhsgref_cdf_2s1_at""," \n
+                         "						""rhsgref_cdf_reg_BM21""," \n
+                         "						""rhssaf_army_2s1""," \n
+                         "						""B_T_MBT_01_mlrs_F""," \n
+                         "						""rhsusf_M142_usarmy_D""," \n
+                         "						""RHS_M252_USMC_D""," \n
+                         "						""rhsgref_cdf_b_reg_M252""," \n
+                         "						""rhsgref_cdf_b_reg_BM21""," \n
+                         "						""rhssaf_army_o_d30""," \n
+                         "						""rhsgref_ins_BM21""," \n
+                         "						""rhssaf_army_o_2s1""," \n
+                         "						""I_Truck_02_MRL_F""," \n
+                         "						""rhsgref_tla_2b14""," \n
+                         "						""rhsusf_m109_usarmy""," \n
+                         "						""rhs_2s3_tv""," \n
+                         "						""rhs_2s1_tv""," \n
+                         "						""rhs_2s1_at_tv""," \n
+                         "						""RHS_M119_WD""," \n
+                         "						""rhs_9k79_K""," \n
+                         "						""RHS_M252_WD""," \n
+                         "						""rhs_2s3_at_tv""," \n
+                         "						""rhs_9k79_B""," \n
+                         "						""rhssaf_army_o_m252""," \n
+                         "						""rhsusf_m109d_usarmy""," \n
+                         "						""rhsgref_cdf_reg_d30""," \n
+                         "						""RHS_M119_D""," \n
+                         "						""rhsgref_cdf_b_2s1_at""," \n
+                         "						""RHS_M252_D""," \n
+                         "						""rhsgref_ins_2s1_at""," \n
+                         "						""rhsusf_M142_usarmy_WD""," \n
+                         "						""CUP_B_M270_HE_HIL""," \n
+                         "						""CUP_B_M270_DPICM_BAF_WOOD""," \n
+                         "						""CUP_B_M270_DPICM_BAF_DES""," \n
+                         "						""CUP_B_M270_HE_BAF_DES""," \n
+                         "						""CUP_B_M270_HE_BAF_WOOD""," \n
+                         "						""CUP_B_M1129_MC_MK19_Desert""," \n
+                         "						""CUP_B_M270_DPICM_USA""," \n
+                         "						""CUP_B_M270_HE_USA""," \n
+                         "						""CUP_B_M270_HE_USMC""," \n
+                         "						""CUP_O_BM21_RU""," \n
+                         "						""CUP_O_BM21_TKA""," \n
+                         "						""CUP_I_M270_DPICM_RACS""," \n
+                         "						""CUP_I_M270_HE_RACS""," \n
+                         "						""CUP_B_M270_DPICM_HIL""," \n
+                         "						""CUP_B_RM70_CZ""," \n
+                         "						""CUP_B_BM21_CDF""," \n
+                         "						""CUP_B_M1129_MC_MK19_Woodland""," \n
+                         "						""CUP_B_M270_DPICM_USMC""," \n
+                         "						""CUP_O_BM21_CHDKZ""," \n
+                         "						""O_T_MBT_02_arty_ghex_F""," \n
+                         "						""CUP_O_BM21_SLA""," \n
+                         "						""CUP_I_M270_DPICM_AAF""," \n
+                         "						""CUP_I_M270_HE_AAF""];" \n
                          "" \n
-                         "Private _MBTparents = [		""MBT_03_base_F""," \n
+                         "" \n
+                         "Private _MBTparents = [	  ""MBT_03_base_F""," \n
                          "						  ""MBT_04_base_F""," \n
                          "						  ""O_MBT_02_base_F""," \n
                          "						  ""B_MBT_01_base_F""," \n
@@ -3485,18 +4017,28 @@ class FSM
                          "if	(_parentType in _APCparents" \n
                          "or   _Firstparent in _APCparents)then{_typeOfVehicle = ""APC""}" \n
                          "else{" \n
+                         "if	(_Cousin in _ArtyParents)then{_typeOfVehicle = ""Artillery""}" \n
+                         "else{" \n
                          "if	(_Vehicle iskindof ""car"")then{" \n
                          "								  if	((Count (AllTurrets [_Vehicle, false])) > 0) then {_typeOfVehicle 	= ""armedCar""}" \n
                          "								  else	{_typeOfVehicle = ""unarmedCar""};" \n
                          "								 }" \n
-                         "							else{" \n
-                         "									if	(_Vehicle iskindof ""man"")" \n
-                         "									then{" \n
-                         "											_typeOfVehicle = ""man"";" \n
-                         "										};" \n
-                         "								};" \n
+                         "else{" \n
+                         "if	(_Vehicle iskindof ""man"")" \n
+                         "then{" \n
+                         "		_typeOfVehicle = ""man"";" \n
                          "	}" \n
+                         "else{" \n
+                         "if(_Vehicle IsKindof ""StaticWeapon"")" \n
+                         "then{_typeOfVehicle = ""turret""}" \n
+                         "else{" \n
+                         "if(_Vehicle isKindOf ""helicopter"")" \n
+                         "then{" \n
+                         "		_typeOfVehicle = [_Vehicle] call Tally_Fnc_GetChopperType;" \n
                          "	};" \n
+                         "" \n
+                         "" \n
+                         "}}}}}};" \n
                          "" \n
                          "If(_typeOfVehicle == ""unknown""" \n
                          "&&{alive _Vehicle})then{[""Could not categorize vehicle"", _CfgName] call debugMessage};" \n
@@ -3622,14 +4164,15 @@ class FSM
                          "if 	(!IsNil ""_Vehicle"" " \n
                          "&& 	{!IsNull _Vehicle " \n
                          "&& 	{Alive _Vehicle" \n
-                         "&& 	{_Vehicle Iskindof ""Land""" \n
-                         "&& 	{!(_Vehicle Iskindof ""man"")" \n
+                         "&& 	{((_Vehicle Iskindof ""car"") " \n
+                         "or 	(_Vehicle Iskindof ""Tank""))" \n
                          "&& 	{!(crew _Vehicle IsEqualTo [])" \n
                          "&& 	{Alive (driver _Vehicle)" \n
                          "&& 	{CanMove _Vehicle" \n
                          "&& 	{IsNil ""_Evading""" \n
                          "&&	{count allTurrets _Vehicle > 0" \n
                          "&&	{!(fuel _Vehicle == 0)" \n
+                         "&&	{!([_Vehicle] call Tally_Fnc_PlayerInVeh)" \n
                          "	}}}}}}}}}}) " \n
                          "				then {_eligble = true};" \n
                          "" \n
@@ -3729,59 +4272,217 @@ class FSM
                          "" \n
                          "Tally_Fnc_3Dmarkers = {" \n
                          "" \n
+                         "if(!isnil ""3DmarkersDOC"")exitWith{};" \n
+                         "3DmarkersDOC = true;" \n
                          "" \n
                          "addMissionEventHandler [""Draw3D"", {" \n
+                         "" \n
                          "If (FSMD3Bugger) then 	{" \n
-                         "							{" \n
-                         "								If (_x getVariable ""Evading"")then {" \n
-                         "								private _ActionText = (_x getVariable ""currentAction"");" \n
-                         "								private _Text	 	= """";" \n
-                         "								private _Damage 	= (Getdammage _x);" \n
-                         "								private _Health 	= 1 - _Damage;" \n
-                         "								if (!IsNil ""_ActionText"") then {_Text = _ActionText;};" \n
-                         "								" \n
-                         "								_Color = [_Damage,_Health,0,1];" \n
-                         "								_S1ze = 1;" \n
-                         "								_alpha = 0.4;" \n
-                         "								_angle = 0; " \n
-                         "								" \n
-                         "								drawIcon3D 	[""\A3\ui_f\data\map\markers\military\warning_CA.paa"", " \n
-                         "								_Color, " \n
-                         "								[((ASLToAGL getPosASL _x) select 0), ((ASLToAGL getPosASL _x) select 1), (((ASLToAGL getPosASL _x)select 2) + 1.5)], " \n
-                         "								_S1ze, _S1ze, _angle, (_Text), 0, 0.02, ""TahomaB""]}" \n
+                         "								private _engagedVehicles = 0;" \n
                          "							" \n
-                         "							} forEach Vehicles;" \n
+                         "								{" \n
+                         "									" \n
+                         "									If (_x getVariable ""Evading"")" \n
+                         "									then{" \n
+                         "											Private _Side 		= (Side _x);" \n
+                         "											Private _SideColor 	= [1,1,1,0.5];" \n
+                         "											private _ActionText = (_x getVariable ""currentAction"");" \n
+                         "											private _FinalPos 	= (_x getVariable ""EvadePos"");" \n
+                         "											private _Text	 	= """";" \n
+                         "											private _Damage 	= (Getdammage _x);" \n
+                         "											private _Health 	= 1 - _Damage;" \n
+                         "											private _PathIcon	= ""\A3\ui_f\data\map\markers\handdrawn\dot_CA.paa"";" \n
+                         "											private _FPS		= diag_fps;" \n
+                         "											if (!IsNil ""_ActionText"") then {_Text = _ActionText;};" \n
+                         "											if(_Side == west)		  then{_SideColor 	= [0.2, 0.2, 1, 0.8]};" \n
+                         "											if(_Side == east)		  then{_SideColor 	= [1, 0.2, 0.2, 0.8]};" \n
+                         "											if(_Side == independent)  then{_SideColor 	= [0.2, 1, 0.2, 0.8]};" \n
+                         "											_engagedVehicles = (_engagedVehicles +1);" \n
+                         "											" \n
+                         "											_Color = [_Damage,_Health,0,1];" \n
+                         "											_S1ze = 1;" \n
+                         "											_alpha = 0.4;" \n
+                         "											_angle = 0; " \n
+                         "											" \n
+                         "											drawIcon3D 	[""\A3\ui_f\data\map\markers\military\warning_CA.paa"", " \n
+                         "											_Color, " \n
+                         "											[((ASLToAGL getPosASL _x) select 0), ((ASLToAGL getPosASL _x) select 1), (((ASLToAGL getPosASL _x)select 2) + 1.5)], " \n
+                         "											_S1ze, _S1ze, _angle, (_Text), 0, 0.02, ""TahomaB""];" \n
+                         "											" \n
+                         "											" \n
+                         "											private _PathPosArr = (_x getVariable ""pathPos"");" \n
+                         "											if (!IsNil ""_PathPosArr""" \n
+                         "											&&{(!IsNil ""_FinalPos"")" \n
+                         "											&&{_FPS > 20}})" \n
+                         "											then{" \n
+                         "													" \n
+                         "													_S1ze = 0.5;" \n
+                         "													_PathPosArr = [_x] call Tally_Fnc_GetPathPositions;" \n
+                         "													private _Poscount		= ((count _PathPosArr)-1);" \n
+                         "													for ""_I"" from 0 to _Poscount" \n
+                         "													do 	{" \n
+                         "															private _PathPos = (_PathPosArr select _I);" \n
+                         "															if(_I == _Poscount)" \n
+                         "															then{" \n
+                         "																	_PathIcon 	= ""\A3\ui_f\data\map\markers\handdrawn\destroy_CA.paa""; " \n
+                         "																	_S1ze 		= 2;" \n
+                         "																};" \n
+                         "															" \n
+                         "																	drawIcon3D 	[_PathIcon, " \n
+                         "																				_SideColor, " \n
+                         "																				_PathPos, " \n
+                         "																				_S1ze, " \n
+                         "																				_S1ze, " \n
+                         "																				45, " \n
+                         "																				"""", " \n
+                         "																				0, " \n
+                         "																				0.02," \n
+                         "																				""TahomaB""];" \n
+                         "																" \n
+                         "															" \n
+                         "															" \n
+                         "														};" \n
+                         "												};" \n
+                         "											" \n
+                         "										};" \n
+                         "								" \n
+                         "										" \n
+                         "									" \n
+                         "									If (_x getVariable ""Spotted"")then 	{" \n
+                         "																		drawIcon3D 	["""", " \n
+                         "																		[0,0.5,0.5,0.8], " \n
+                         "																		[((ASLToAGL getPosASL _x) select 0), " \n
+                         "																		((ASLToAGL getPosASL _x) select 1), " \n
+                         "																		(((ASLToAGL getPosASL _x)select 2) + 10)], " \n
+                         "																		0.5, " \n
+                         "																		0.5, " \n
+                         "																		45, " \n
+                         "																		(""Detected""), " \n
+                         "																		0, " \n
+                         "																		0.02, " \n
+                         "																		""TahomaB""];" \n
+                         "																	};" \n
+                         "								" \n
+                         "								" \n
+                         "								" \n
+                         "								" \n
+                         "								" \n
+                         "								} forEach Vehicles;" \n
+                         "								" \n
+                         "						" \n
+                         "							" \n
+                         "							" \n
+                         "							" \n
+                         "							" \n
+                         "							" \n
                          "						}; " \n
                          "}];" \n
+                         "};" \n
                          "" \n
                          "" \n
-                         "addMissionEventHandler [""Draw3D"", {" \n
-                         "Private _Color = [1,0,0,1];" \n
-                         "Private _S1ze = 1;" \n
-                         "Private _alpha = 0.4;" \n
-                         "Private _angle = 0;" \n
-                         "private _Text  = """";" \n
+                         "Tally_Fnc_PathDrawer = {" \n
+                         "params[""_Vehicle""];" \n
                          "" \n
-                         "If (FSMD3Bugger) then 	{" \n
-                         "							{" \n
-                         "								If (_x getVariable ""Spotted"")then 	{" \n
-                         "																	drawIcon3D 	["""", " \n
-                         "																	[0,0.5,0.5,0.8], " \n
-                         "																	[((ASLToAGL getPosASL _x) select 0), " \n
-                         "																	((ASLToAGL getPosASL _x) select 1), " \n
-                         "																	(((ASLToAGL getPosASL _x)select 2) + 10)], " \n
-                         "																	0.5, " \n
-                         "																	0.5, " \n
-                         "																	45, " \n
-                         "																	(""Detected""), " \n
-                         "																	0, " \n
-                         "																	0.02, " \n
-                         "																	""TahomaB""];" \n
-                         "																};" \n
-                         "							} forEach Vehicles;" \n
-                         "						};" \n
                          "" \n
+                         "};" \n
+                         "" \n
+                         "systemChat ""DevFile read."";" \n
+                         "" \n
+                         "Tally_Fnc_TerrainIntersects = {" \n
+                         "private _AddedAltitude = 0;" \n
+                         "private _IsInterSecting = false;" \n
+                         "private _DistBetweenEachPos = 5;" \n
+                         "params [""_StartPos"", ""_EndPos"", ""_AddedAltitude"", ""_DistBetweenEachPos""];" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "private _NextPosDistance 	= _DistBetweenEachPos;" \n
+                         "private _Dir 				= _StartPos getDir _EndPos;" \n
+                         "Private _Distance 			= (_StartPos distance2d _EndPos);" \n
+                         "private _PosAmount 			= floor (_Distance / _DistBetweenEachPos);" \n
+                         "private _InterSectionHeight = selectMax [(getTerrainHeightASL _StartPos) + _AddedAltitude, " \n
+                         "										 (getTerrainHeightASL _EndPos) 	 + _AddedAltitude];" \n
+                         "" \n
+                         "" \n
+                         "for ""_I"" from 1 to _PosAmount " \n
+                         "do	{" \n
+                         "		Private _Position 	= [_StartPos select 0, _StartPos select 1, _Dir, _NextPosDistance] call Tally_Fnc_CalcAreaLoc;" \n
+                         "		private _Height		= (getTerrainHeightASL _Position);" \n
+                         "		" \n
+                         "		_NextPosDistance = (_NextPosDistance + _DistBetweenEachPos);" \n
+                         "		if(_Height > _InterSectionHeight)" \n
+                         "		exitWith{" \n
+                         "					_IsInterSecting = true;" \n
+                         "				};" \n
+                         "		" \n
+                         "	};" \n
+                         "" \n
+                         "" \n
+                         "_IsInterSecting};" \n
+                         "" \n
+                         "" \n
+                         "Tally_Fnc_GetPathPositions = {" \n
+                         "params[""_Vehicle""];" \n
+                         "" \n
+                         "private _DistBetweenEachPos = 15;" \n
+                         "private _NextPosDistance 	= _DistBetweenEachPos;" \n
+                         "private _TargetPos 			= (_Vehicle getVariable ""EvadePos"");" \n
+                         "		If!([_TargetPos] " \n
+                         "		call " \n
+                         "		Tally_Fnc_IsPos)" \n
+                         "		then{" \n
+                         "				_TargetPos = (_TargetPos select 0);" \n
+                         "			};" \n
+                         "private _VehiclePos 		= (GetPos _Vehicle);" \n
+                         "private _Dir 				= _VehiclePos getDir _TargetPos;" \n
+                         "Private _Distance 			= (_VehiclePos distance2d _TargetPos);" \n
+                         "private _PosAmount 			= floor (_Distance / _DistBetweenEachPos);" \n
+                         "private _PosInBetween 		= [_VehiclePos];" \n
+                         "" \n
+                         "if(_PosAmount > 0)" \n
+                         "then{" \n
+                         "		for ""_I"" from 1 to _PosAmount " \n
+                         "		do	{" \n
+                         "				Private _Position 	= [_VehiclePos select 0, _VehiclePos select 1, _Dir, _NextPosDistance] call Tally_Fnc_CalcAreaLoc;" \n
+                         "				_NextPosDistance = (_NextPosDistance + _DistBetweenEachPos);" \n
+                         "				_PosInBetween pushBack _Position;" \n
+                         "				" \n
+                         "			};" \n
+                         "	};" \n
+                         "	" \n
+                         "	_PosInBetween pushBack _TargetPos;" \n
+                         "	" \n
+                         "	" \n
+                         "" \n
+                         "_PosInBetween};" \n
+                         "" \n
+                         "Tally_Fnc_IsPos ={" \n
+                         "Params[""_Arr""];" \n
+                         "Private _Pos = true;" \n
+                         "if!(Count _Arr == 3) exitWith{false};" \n
+                         "" \n
+                         "{" \n
+                         "if!(typeName _X == ""SCALAR"")" \n
+                         "then{_Pos = false;};" \n
+                         "}ForEach _Arr;" \n
+                         "" \n
+                         "_Pos};" \n
+                         "Tally_Fnc_CuratorEH = {" \n
+                         "{" \n
+                         "_x addEventHandler [""CuratorObjectDeleted"", {" \n
+                         "	params [""_curator"", ""_entity""];" \n
+                         "private _Evading = _entity GetVariable ""Evading"";" \n
+                         "	if(FSMD3Bugger)" \n
+                         "	then{" \n
+                         "			if(!isnil ""_Evading"")" \n
+                         "			then{" \n
+                         "					Hint (parsetext format [""Be carefull deleting units while they are engaged / activated. <br/>This could lead to scripts not exiting properly""]);" \n
+                         "				};" \n
+                         "		};" \n
+                         "	" \n
                          "}];" \n
+                         "}ForEach allCurators;" \n
+                         "" \n
                          "" \n
                          "};"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
@@ -3792,7 +4493,7 @@ class FSM
                                 {
                                         itemno = 11;
                                         priority = 0.000000;
-                                        to="feedback";
+                                        to="PostInit";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
                                         condition=/*%FSM<CONDITION""">*/"!IsNil Tally_Fnc_CuratorEH"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
@@ -3826,7 +4527,7 @@ class FSM
                                 {
                                         itemno = 13;
                                         priority = 0.000000;
-                                        to="Feedback_1";
+                                        to="Feedback";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
                                         condition=/*%FSM<CONDITION""">*/"EndVehicleFSM_now"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
@@ -3839,7 +4540,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Executing_FSM_functions";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"((time - _time > _refreshRate) && (Tally_VEh_FSM_iteration_Done))"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"((time - _time > iterationTimer) && (Tally_VEh_FSM_iteration_Done))"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -3881,10 +4582,10 @@ class FSM
                         };
                 };
                 /*%FSM</STATE>*/
-                /*%FSM<STATE "feedback">*/
-                class feedback
+                /*%FSM<STATE "PostInit">*/
+                class PostInit
                 {
-                        name = "feedback";
+                        name = "PostInit";
                         itemno = 12;
                         init = /*%FSM<STATEINIT""">*/"Diag_Log ""DCO_FSM has initiated"";" \n
                          "" \n
@@ -3892,8 +4593,18 @@ class FSM
                          "" \n
                          "if (_DeBug) then {" \n
                          "							[] spawn Tally_Fnc_3Dmarkers;" \n
-                         "if(!Isnil Tally_Fnc_CuratorEH)then{[] call  Tally_Fnc_CuratorEH};" \n
-                         "};"/*%FSM</STATEINIT""">*/;
+                         "" \n
+                         "};" \n
+                         "AreaScan = false;" \n
+                         "Version	 = 1.01;" \n
+                         "deathGroup = createGroup civilian;" \n
+                         "HintTimer			= 20;" \n
+                         "TenSecondTaskTimer	= 0;" \n
+                         "iterationTimer		= 1;" \n
+                         "ScriptsRunningDOC	= (diag_activeScripts select 0);" \n
+                         "{[_X] call Tally_Fnc_AddEh}ForEach Vehicles;" \n
+                         "[] call Tally_Fnc_CuratorEH;" \n
+                         "[] remoteExecCall [""Tally_Fnc_3Dmarkers"", 0, true];"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -3911,10 +4622,10 @@ class FSM
                         };
                 };
                 /*%FSM</STATE>*/
-                /*%FSM<STATE "Feedback_1">*/
-                class Feedback_1
+                /*%FSM<STATE "Feedback">*/
+                class Feedback
                 {
-                        name = "Feedback_1";
+                        name = "Feedback";
                         itemno = 14;
                         init = /*%FSM<STATEINIT""">*/"Diag_Log ""DCO_FSM has been terminated"";" \n
                          "if (_DeBug) then {SystemChat ""Dragon_Company_Veh_Withdraw_FSM has been terminated""};" \n
