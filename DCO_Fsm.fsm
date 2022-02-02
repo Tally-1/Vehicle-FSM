@@ -1,7 +1,7 @@
 /*%FSM<COMPILE "C:\Program Files (x86)\Steam\steamapps\common\Arma 3 Tools\FSMEditor\scriptedFSM.cfg, Veh_FSM">*/
 /*%FSM<HEAD>*/
 /*
-item0[] = {"Init_FSM",0,250,-436.614563,-1259.584595,-346.614624,-1209.584473,0.000000,"Init FSM"};
+item0[] = {"Init_FSM",0,4346,-436.614563,-1259.584595,-346.614624,-1209.584473,0.000000,"Init FSM"};
 item1[] = {"FSM_not_running",4,218,-450.142822,-1144.447144,-335.270630,-1073.305664,0.000000,"FSM not running"};
 item2[] = {"Declaring_all_functions",2,250,-509.914093,-776.690063,-272.368530,-693.902222,0.000000,"Declaring all functions needed"};
 item3[] = {"sleep",4,218,-434.686584,-456.030518,-344.686584,-406.030579,0.000000,"sleep"};
@@ -13,7 +13,7 @@ item8[] = {"exit",1,250,116.966492,-1156.514160,206.966522,-1106.514282,0.000000
 item9[] = {"Declare_state",2,250,-438.308624,-999.929077,-348.308624,-949.929077,0.000000,"Declare state"};
 item10[] = {"sleep",4,218,-437.688751,-879.131104,-347.688751,-829.131104,0.000000,"sleep"};
 item11[] = {"true",8,218,-434.722595,-638.593079,-344.722595,-588.593079,0.000000,"true"};
-item12[] = {"PostInit",2,4346,-482.944977,-556.055786,-306.401611,-482.616943,0.000000,"PostInit"};
+item12[] = {"PostInit",2,250,-482.944977,-556.055786,-306.401611,-482.616943,0.000000,"PostInit"};
 item13[] = {"EndCondition",4,218,116.574257,-510.365356,206.574249,-427.530273,0.000000,"EndCondition"};
 item14[] = {"Feedback",2,250,116.823433,-742.144836,206.823456,-692.144836,0.000000,"Feedback"};
 item15[] = {"true",8,218,117.289719,-956.827026,207.289719,-906.827087,0.000000,"true"};
@@ -78,7 +78,7 @@ link16[] = {15,8};
 link17[] = {16,6};
 link18[] = {19,14};
 globals[] = {0.000000,0,0,0,0,640,480,1,41,6316128,1,-1433.603271,791.283325,-52.553467,-1646.394409,1234,884,1};
-window[] = {2,-1,-1,-32000,-32000,921,182,1206,182,3,1252};
+window[] = {2,-1,-1,-1,-1,895,156,1180,156,3,1252};
 *//*%FSM</HEAD>*/
 class FSM
 {
@@ -93,7 +93,7 @@ class FSM
                         init = /*%FSM<STATEINIT""">*/"_Minimum_Distance = 350;" \n
                          "_DeBug = false;" \n
                          "_VehicleAutoRepair 	= true;" \n
-                         "iterationTimer		   = 1;;" \n
+                         "iterationTimer		   = 2;" \n
                          "Params [""_Minimum_Distance"", ""_DeBug"", ""_VehicleAutoRepair""];" \n
                          "_time = time;" \n
                          "_Running = (MissionNamespace GetVariable ""Tally_FSM_RUnning"");" \n
@@ -155,9 +155,10 @@ class FSM
                          "					private _Loaded 	= (_Initiator GetVariable ""FlankPosLoaded"");" \n
                          "					private _TimedOut 	= (time - _Timer > 4);" \n
                          "					" \n
-                         "					if(_Loaded" \n
-                         "					or _TimedOut" \n
-                         "					or (IsNil ""_Loaded""))" \n
+                         "					if(IsNil ""_Loaded"")exitWith{true};" \n
+                         "					" \n
+                         "					if(_TimedOut" \n
+                         "					or _Loaded)" \n
                          "					exitWith{true};" \n
                          "					false" \n
                          "				  };" \n
@@ -308,11 +309,12 @@ class FSM
                          "" \n
                          "" \n
                          "If (!IsNil ""_Repairing""" \n
-                         "&& {_Repairing})		ExitWith {};" \n
+                         "&& {_Repairing})			ExitWith {};" \n
                          "If (Isnil ""_Vehicle"")	ExitWith {};" \n
                          "If (Isnil ""_Enemy"")		ExitWith {};" \n
                          "If (!Isnil ""_Evading"")	ExitWith {};" \n
                          "If (Isnull _Enemy)		ExitWith {};" \n
+                         "if([_Vehicle] call Tally_Fnc_PlayerInVeh) exitwith{};" \n
                          "" \n
                          "diag_log format [""side Vehicle %1 Has %2 TargetKnowledge"", _Vehicle, (_Side knowsAbout _Enemy)];" \n
                          "If ((!((_Side knowsAbout _Enemy) > 0)) " \n
@@ -330,7 +332,7 @@ class FSM
                          "" \n
                          "Private _EnAvgPos			= ([_Enemy, (Round(_Minimum_Distance * 0.5))] call Tally_Fnc_AVGclusterPOS);" \n
                          "Private _EnemyCluster		= ([_Enemy, (Round(_Minimum_Distance * 0.5))] call Tally_Fnc_ClusterMembers);" \n
-                         "private _KnownEnemies		= [];" \n
+                         "private _KnownEnemies		= [_Enemy];" \n
                          "private _enemyPositions		= [];" \n
                          "private _Crew 				= [];" \n
                          "private _Gunner_2			= """";" \n
@@ -368,14 +370,20 @@ class FSM
                          "" \n
                          "" \n
                          "Private _EnemyDir 			= ((_Vehicle getRelDir _Enemy) + (Getdir _Vehicle));" \n
-                         "Private _evasionDir 		= ((_EnemyDir - 180) + 0);" \n
-                         "Private _GoDistance 		= ((_Minimum_Distance - (_Vehicle Distance2D _Enemy)) + (_Minimum_Distance / 5)); " \n
+                         "Private _evasionDir 			= ((_EnemyDir - 180) + 0);" \n
+                         "Private _GoDistance 			= ((_Minimum_Distance - (_Vehicle Distance2D _Enemy)) + (_Minimum_Distance / 5)); " \n
                          "private _VehicleType 		= ([_Vehicle] call Tally_Fnc_GetVehicleType);" \n
                          "private _VehPos		 		= (GetPos _Vehicle);" \n
                          "private _AvgEnemyAltitude 	= [_enemyPositions] call Tally_Fnc_GetAVGheight;" \n
                          "private _Timer				= (round((time) + (_Minimum_Distance / ([_Vehicle] call Tally_Fnc_Timer_divisor))));" \n
                          "private _LastSmoke			= (_Vehicle getVariable ""LastSmoke"");" \n
                          "" \n
+                         "private _HidePos 			=  [_VehPos select 0, " \n
+                         "								_VehPos select 1, " \n
+                         "							(_EnAvgPos getDir _VehPos), " \n
+                         "							(_Minimum_Distance / 4)] " \n
+                         "							call Tally_Fnc_CalcAreaLoc;" \n
+                         "							" \n
                          "If (_EnemyDist < 50) then {_evasionDir = (getDir _Vehicle)};" \n
                          "" \n
                          "Private _EvasionPos = [_VehPos select 0, _VehPos select 1, _evasionDir, _GoDistance] call Tally_Fnc_CalcAreaLoc;" \n
@@ -384,40 +392,40 @@ class FSM
                          "" \n
                          "" \n
                          "_Vehicle SetVariable [""initiated"",			time,											true];" \n
-                         "_Vehicle SetVariable [""Cluster"",			_EnemyCluster,									true];" \n
+                         "_Vehicle SetVariable [""Cluster"",				_EnemyCluster,									true];" \n
                          "_Vehicle SetVariable [""Centro"",				_EnAvgPos,										true];" \n
                          "_Vehicle SetVariable [""Positions"",			[], 											true];" \n
                          "_Vehicle SetVariable [""FlankPosLoaded"",		false, 											true];" \n
-                         "_Vehicle SetVariable [""HidePositions"",		[], 											true];" \n
+                         "_Vehicle SetVariable [""HidePositions"",		[],												true];" \n
                          "_Vehicle SetVariable [""Markers"", 			[], 											true];" \n
                          "_Vehicle SetVariable [""NextPosMarkers"",		[], 											true];" \n
                          "_Vehicle SetVariable [""SelPosMarked"",		false, 											true];" \n
-                         "_Vehicle SetVariable [""HiddenPosLoaded"",	false, 											true];" \n
+                         "_Vehicle SetVariable [""HiddenPosLoaded"",		false, 											true];" \n
                          "_Vehicle SetVariable [""TwoTimesHideSearch"",	false, 											true];" \n
                          "_Vehicle SetVariable [""PushPosLoaded"",		false, 											true];" \n
-                         "_Vehicle SetVariable [""timer"", 				_Timer, 										true];" \n
+                         "_Vehicle SetVariable [""timer"", 				_Timer, 											true];" \n
                          "_Vehicle SetVariable [""tim3r"", 				(systemTime select 1),							true];" \n
                          "_Vehicle SetVariable [""MinDistEnemy"", 		_Minimum_Distance, 								true];" \n
                          "_Vehicle setVariable [""Crew"",				_Crew, 											true];" \n
-                         "_Vehicle setVariable [""driver"", 			driver 		_Vehicle,                           true];" \n
-                         "_Vehicle setVariable [""gunner"", 			gunner 		_Vehicle,                           true];" \n
+                         "_Vehicle setVariable [""driver"", 				driver 		_Vehicle,                           	true];" \n
+                         "_Vehicle setVariable [""gunner"", 				gunner 		_Vehicle,                           	true];" \n
                          "_Vehicle setVariable [""gunner_2"", 			_Gunner_2, 										true];" \n
-                         "_Vehicle setVariable [""commander"", 			commander 	_Vehicle,                           true];" \n
+                         "_Vehicle setVariable [""commander"", 			commander 	_Vehicle,                           	true];" \n
                          "_Vehicle setVariable [""KnownEnemies"", 		_KnownEnemies,									true];" \n
                          "_Vehicle setVariable [""repairing"", 			false,											true];" \n
                          "_Vehicle setVariable [""switching"", 			false,											true];" \n
-                         "_Vehicle setVariable [""crewStatus"", 		""Operational"",									true]; " \n
+                         "_Vehicle setVariable [""crewStatus"", 			""Operational"",									true]; " \n
                          "_Vehicle setVariable [""vehicleType"", 		_VehicleType,									true];" \n
                          "_Vehicle setVariable [""currentAction"", 		""Assesing situation"",							true]; " \n
                          "_Vehicle SetVariable [""Evading"", 			true, 											true];" \n
                          "_Vehicle SetVariable [""EvadePos"", 			_EvasionPos, 									true];" \n
                          "_Vehicle SetVariable [""moveAttempts"", 		0, 												true];" \n
                          "_Vehicle SetVariable [""PushPositions"", 		[], 											true];" \n
-                         "_Vehicle SetVariable [""enemyPositions"", 	_enemyPositions,								true];" \n
+                         "_Vehicle SetVariable [""enemyPositions"", 		_enemyPositions,									true];" \n
                          "_Vehicle SetVariable [""AvgEnemyAltitude"", 	_AvgEnemyAltitude,								true];" \n
                          "_Vehicle SetVariable [""Group"",				_Group,											true];" \n
                          "_Vehicle SetVariable [""Secondary_Groups"",	[],												true];" \n
-                         "_Vehicle SetVariable [""NearFriends"", 		([_Vehicle, true] call Tally_Fnc_GetNearFriends),true];" \n
+                         "_Vehicle SetVariable [""NearFriends"", 		([_Vehicle, true] call Tally_Fnc_GetNearFriends),	true];" \n
                          "_Vehicle SetVariable [""EndingScript"",		false,											true];" \n
                          "_Vehicle SetVariable [""lastOutro"",			time,											true];" \n
                          "_Vehicle SetVariable [""AllSpotted"",			[],												true];" \n
@@ -425,7 +433,7 @@ class FSM
                          "_Vehicle SetVariable [""LastMove"",			time + 5,										true];" \n
                          "_Vehicle SetVariable [""endedAlready"",		false,											true];" \n
                          "_Vehicle SetVariable [""lastRepair"",			time - 60,										true];" \n
-                         "_Vehicle SetVariable [""pathPos"",			[],												true];" \n
+                         "_Vehicle SetVariable [""pathPos"",				[],												true];" \n
                          "" \n
                          "if(isnil ""_LastSmoke"")then	{" \n
                          "								_Vehicle SetVariable [""LastSmoke"", 		time - 120,			true];" \n
@@ -440,6 +448,66 @@ class FSM
                          "" \n
                          "" \n
                          "[_Vehicle, _EnAvgPos] call Tally_Fnc_QuickDecision;" \n
+                         "if(_vehicle IskindOf ""HeliCopter"")" \n
+                         "exitwith{" \n
+                         "		" \n
+                         "		[_vehicle, " \n
+                         "		_HidePos," \n
+                         "		_EnAvgPos] spawn{" \n
+                         "							params[""_Chopper"", ""_EvasionPos"", ""_EnAvgPos""];" \n
+                         "							" \n
+                         "							_Chopper SetVariable [""EvadePos"", _EvasionPos, true];" \n
+                         "							" \n
+                         "							private _Time		= 2;" \n
+                         "							private _Brake_I		= 20;" \n
+                         "							private _Sleep		= _Time / _Brake_I;" \n
+                         "							Private _speed 		= (velocityModelSpace _chopper) select 1;" \n
+                         "							private _DriftX = (velocityModelSpace _chopper) select 0;" \n
+                         "							private _DriftZ = (velocityModelSpace _chopper) select 2;" \n
+                         "							Private _Reduction 	= _speed / _Brake_I;" \n
+                         "							private _Pilot		= (driver _Chopper);" \n
+                         "							private _Group		= group _Chopper;" \n
+                         "							" \n
+                         "							_Pilot 			setBehaviourStrong ""AWARE"";" \n
+                         "							(Group _Pilot) 	setBehaviourStrong ""AWARE"";" \n
+                         "							_Group 			setCombatMode 	   ""YELLOW"";" \n
+                         "							" \n
+                         "							" \n
+                         "							[_Chopper, false] spawn Tally_Fnc_SwitchEngagement;" \n
+                         "							[_Chopper, _EvasionPos] call Tally_Fnc_SoftMove;" \n
+                         "							_Chopper setVariable [""currentAction"", 	""Hide"", 		true];" \n
+                         "							_Chopper setVariable [""HiddenPosLoaded"", true, 			true];" \n
+                         "							_Chopper SetVariable [""EvadePos"", 		_EvasionPos, 	true];" \n
+                         "							_Chopper SetVariable [""HidePositions"",	[_EvasionPos],	true];" \n
+                         "							_Chopper SetVariable [""ready"", 			true, 			true];" \n
+                         "							" \n
+                         "							for ""_I"" from 1 to _Brake_I do{" \n
+                         "														[_Chopper, false] spawn Tally_Fnc_SwitchEngagement;" \n
+                         "														_speed = (velocityModelSpace _chopper) select 1;" \n
+                         "														_DriftX = (velocityModelSpace _chopper) select 0;" \n
+                         "														_DriftZ = (velocityModelSpace _chopper) select 2;" \n
+                         "														_Chopper setVelocityModelSpace [_DriftX, (_speed - _Reduction), _DriftZ];" \n
+                         "														sleep _Sleep;" \n
+                         "														_Pilot 			setBehaviourStrong ""AWARE"";" \n
+                         "														(Group _Pilot) 	setBehaviourStrong ""AWARE"";" \n
+                         "													};" \n
+                         "							for ""_I"" from 1 to 180 do		{" \n
+                         "																private _Dir = (Getdir _Chopper);" \n
+                         "																_Chopper setDir (_Dir -1);" \n
+                         "																sleep (2 / 180);" \n
+                         "															};" \n
+                         "							_speed = (velocityModelSpace _chopper) select 1;" \n
+                         "							_DriftX = (velocityModelSpace _chopper) select 0;" \n
+                         "							_DriftZ = (velocityModelSpace _chopper) select 2;" \n
+                         "							" \n
+                         "							for ""_I"" from 1 to _Brake_I do{_Chopper setVelocityModelSpace [_DriftX, (_speed - _Reduction), _DriftZ]; sleep _Sleep};" \n
+                         "							" \n
+                         "							" \n
+                         "						};" \n
+                         "		" \n
+                         "		" \n
+                         "	};" \n
+                         "" \n
                          "" \n
                          "if(IsNil ""_Initiator"")" \n
                          "then{" \n
@@ -470,7 +538,11 @@ class FSM
                          "_Vehicle SetVariable [""EvadePos"", 		_EvasionPos, true];" \n
                          "" \n
                          "" \n
-                         "{[_X, (_Vehicle GetVariable ""Cluster"")] spawn Tally_Fnc_Reveal} ForEach _GroupUnits;" \n
+                         "if!(IsNil ""Cluster"")" \n
+                         "then{" \n
+                         "		{[_X, (_Vehicle GetVariable ""Cluster"")] spawn Tally_Fnc_Reveal} ForEach _GroupUnits;" \n
+                         "	};" \n
+                         "	" \n
                          "" \n
                          "" \n
                          "if(!IsNil ""_Initiator"") " \n
@@ -527,9 +599,24 @@ class FSM
                          "									" \n
                          "								};" \n
                          "" \n
-                         "" \n
-                         "" \n
                          "};" \n
+                         "" \n
+                         "Tally_Fnc_PlayerInVeh2 = {" \n
+                         "params[""_Vehicle""];" \n
+                         "Private _InVeh = false;" \n
+                         "{" \n
+                         "if((vehicle _X) == _Vehicle)" \n
+                         "exitwith{" \n
+                         "			_InVeh = true;" \n
+                         "		};" \n
+                         "} ForEach AllPlayers;" \n
+                         "" \n
+                         "_InVeh};" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "Tally_Fnc_PlayerInVeh = {" \n
                          "params[""_Vehicle""];" \n
@@ -541,9 +628,84 @@ class FSM
                          "then {_InVeh = true};" \n
                          "}ForEach (Crew _Vehicle);" \n
                          "" \n
+                         "if!(_InVeh)" \n
+                         "then{" \n
+                         "		_InVeh = [_Vehicle] call Tally_Fnc_PlayerInVeh2;" \n
+                         "	};" \n
+                         "" \n
+                         "_InVeh};Tally_Fnc_TaskManager = {" \n
                          "" \n
                          "" \n
-                         "_InVeh};" \n
+                         "" \n
+                         "					{" \n
+                         "						private _Vehicle = _X;" \n
+                         "						private _evading = _x getVariable ""Evading"";" \n
+                         "						" \n
+                         "						If ([_X] call Tally_Fnc_VehEligbleFSM" \n
+                         "						&& (Isnil ""_evading"")) 				then 	{" \n
+                         "																		" \n
+                         "																		[_Vehicle, VehMinimumDistance, FSMD3Bugger] spawn Tally_Fnc_EvadeVEh;" \n
+                         "																		sleep 0.1;" \n
+                         "																	" \n
+                         "																	};" \n
+                         "						If (_x getVariable ""Evading""" \n
+                         "						&&{(_x getVariable ""ready"")" \n
+                         "						&&{true }}) 	" \n
+                         "						then 	{													" \n
+                         "									" \n
+                         "									private _Timer = time + iterationTimer;" \n
+                         "									private _Script = [_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
+                         "									waituntil {sleep 0.02; (scriptDone _Script or time > _Timer)};" \n
+                         "									sleep 0.1;" \n
+                         "																			" \n
+                         "								}" \n
+                         "						else 	{" \n
+                         "								" \n
+                         "								};" \n
+                         "					sleep 0.05;" \n
+                         "					} ForEach vehicles;" \n
+                         "					" \n
+                         "					if (time > HintTimer) then	{" \n
+                         "													HintTimer = time + 120;" \n
+                         "													" \n
+                         "													If(FSMD3Bugger)" \n
+                         "													then{" \n
+                         "															hint (parsetext format[""DCO vehicle FSM: <br/>Version %1"", (Version)]);" \n
+                         "														};" \n
+                         "												" \n
+                         "												};" \n
+                         "					" \n
+                         "				if (time > TenSecondTaskTimer) then 	{" \n
+                         "														{						" \n
+                         "														if !(_X == deathGroup)" \n
+                         "														then 	{" \n
+                         "																	if(Units _X IsEqualTo [] " \n
+                         "																	or IsNull _X)" \n
+                         "																	then{" \n
+                         "																			deleteGroup _X;" \n
+                         "																		};" \n
+                         "																};" \n
+                         "														}ForEach AllGroups;" \n
+                         "													" \n
+                         "														{" \n
+                         "														[_X] call Tally_Fnc_AddEh" \n
+                         "														}ForEach Vehicles;" \n
+                         "														" \n
+                         "														diag_log format[""Active scripts: %1"", (diag_activeScripts select 0)];" \n
+                         "														TenSecondTaskTimer = time + 10;" \n
+                         "														 " \n
+                         "														" \n
+                         "													" \n
+                         "													};" \n
+                         "" \n
+                         "ScriptsRunningDOC		= (diag_activeScripts select 0);" \n
+                         "" \n
+                         "if(FSMD3Bugger" \n
+                         "&&{diag_fps < 20})" \n
+                         "then{" \n
+                         "		Hint (parsetext format [""Your FPS is dangerously low, this might cause issues with the running scripts.<br/>%1 FPS."", (diag_fps)]);" \n
+                         "	};" \n
+                         "};" \n
                          "Tally_Fnc_InitRepairs = {" \n
                          "params[""_Vehicle""];" \n
                          "private _Crew 	= (_Vehicle GetVariable ""Crew"");" \n
@@ -872,9 +1034,10 @@ class FSM
                          "					private _Loaded 	= (_Initiator GetVariable ""HiddenPosLoaded"");" \n
                          "					private _TimedOut 	= (_Timer < time);" \n
                          "					" \n
-                         "					if(_Loaded" \n
-                         "					or _TimedOut" \n
-                         "					or (IsNil ""_Loaded""))" \n
+                         "					if(IsNil ""_Loaded"")exitWith{true};" \n
+                         "					" \n
+                         "					if(_TimedOut" \n
+                         "					or _Loaded)" \n
                          "					exitWith{true};" \n
                          "					false" \n
                          "				  };" \n
@@ -1643,21 +1806,25 @@ class FSM
                          "private _ReEngageOrders 	= [""flank"", ""push""];" \n
                          "private _TargetPos 			= (_Vehicle GetVariable ""Centro""); 			if(IsNil ""_TargetPos"")exitWith{};" \n
                          "private _Crew 				= (_Vehicle GetVariable ""Crew"");			if(IsNil ""_Crew"")exitWith{[""Crew is not defined on vehicle: "", _Vehicle] call debugMessage};" \n
-                         "private _MinDist			= (_Vehicle GetVariable ""MinDistEnemy"");" \n
+                         "private _MinDist				= (_Vehicle GetVariable ""MinDistEnemy"");" \n
                          "private _outOfReach 		= (_TargetPos distance2d (getpos _Vehicle) > (_MinDist * 0.75));" \n
                          "private _CrewWorks			= (_Vehicle GetVariable ""crewStatus"")	== ""Operational"";" \n
-                         "private _GetBack			= _Action in _ReEngageOrders;" \n
+                         "private _GetBack				= _Action in _ReEngageOrders;" \n
                          "private _CrewInVehicle		= [_Vehicle] call Tally_Fnc_CrewInVehicle;" \n
-                         "private _CrewMember			= (_Crew select 0);" \n
+                         "private _CrewMember		= (_Crew select 0);" \n
+                         "private _vehicleType			= (_Vehicle GetVariable ""vehicleType"");" \n
                          "If(isnil ""_CrewMember"") then   {_CrewMember = crew _Vehicle select 0};" \n
                          "If(isnil ""_CrewMember"")exitWith{[""could not complete postscripts""] call debugMessage};" \n
                          "private _Group 				= (group _CrewMember);" \n
                          "private _Side				= (side _CrewMember);" \n
-                         "private _HiddenPositions 	= (_Vehicle GetVariable ""HidePositions"");" \n
-                         "private _HidePosition		= (_Vehicle GetVariable ""EvadePos"");" \n
-                         "private _Driver 			= (driver _Vehicle);" \n
+                         "private _HiddenPositions 		= (_Vehicle GetVariable ""HidePositions"");" \n
+                         "private _HidePosition			= (_Vehicle GetVariable ""EvadePos"");" \n
+                         "private _Driver 				= (driver _Vehicle);" \n
                          "private _Timer	 			= (Time + 5);" \n
                          "private _LiveCrew	 		= [];" \n
+                         "private _Chopper	 		= (_vehicle IskindOf ""HeliCopter""" \n
+                         "							&&{((_vehicleType == ""Light Chopper"")" \n
+                         "							or (_vehicleType == ""Heavy Chopper""))});" \n
                          "" \n
                          "" \n
                          "{if (Alive _X)" \n
@@ -1704,7 +1871,8 @@ class FSM
                          "" \n
                          "" \n
                          "If	(_CrewWorks" \n
-                         "&& {_GetBack" \n
+                         "&& {((_GetBack)" \n
+                         "or	(_Chopper))" \n
                          "&& {_outOfReach}}) then{" \n
                          "							" \n
                          "							Private _Script = [(group _Driver)] spawn Tally_Fnc_ResetGroup;" \n
@@ -1718,12 +1886,17 @@ class FSM
                          "						}" \n
                          "					else{" \n
                          "						If(FSMD3Bugger)then{" \n
-                         "												if !(_outOfReach)	then	{systemChat format [""unit Is still in the combat-zone, re-starting evasion-calculations""]};" \n
+                         "												if !(_outOfReach)	then	{};" \n
                          "												if !(_CrewWorks)	then	{systemChat format [""The crew is either dead or to few too re-engage""]};" \n
-                         "												if !(_GetBack)		then	{systemChat format [""""]};" \n
+                         "												if !(_GetBack)		then	{};" \n
                          "											};" \n
                          "						};" \n
                          "" \n
+                         "if(_vehicle IskindOf ""HeliCopter"")" \n
+                         "then{" \n
+                         "		[_Vehicle, true] 		call Tally_Fnc_SwitchEngagement;" \n
+                         "		[_Vehicle, _TargetPos] 	spawn Tally_Fnc_SoftMove;" \n
+                         "	};" \n
                          "" \n
                          "_Vehicle SetVariable [""EndingScript"", 	false, true];" \n
                          "};" \n
@@ -1749,14 +1922,14 @@ class FSM
                          "			_Vehicle SetVariable [""timer"",			nil, true];" \n
                          "			_Vehicle SetVariable [""MinDistEnemy"", 	nil, true];" \n
                          "			_Vehicle setVariable [""Crew"",			nil, true];" \n
-                         "			_Vehicle setVariable [""driver"", 		nil, true];" \n
-                         "			_Vehicle setVariable [""gunner"", 		nil, true];" \n
+                         "			_Vehicle setVariable [""driver"", 			nil, true];" \n
+                         "			_Vehicle setVariable [""gunner"", 			nil, true];" \n
                          "			_Vehicle setVariable [""gunner_2"", 		nil, true];" \n
                          "			_Vehicle setVariable [""commander"", 		nil, true];" \n
                          "			_Vehicle setVariable [""KnownEnemies"", 	nil, true];" \n
                          "			_Vehicle setVariable [""vehicleType"", 	nil, true];" \n
                          "			_Vehicle setVariable [""currentAction"", 	nil, true];" \n
-                         "			_Vehicle setVariable [""crewStatus"", 	nil, true];" \n
+                         "			_Vehicle setVariable [""crewStatus"", 		nil, true];" \n
                          "			_Vehicle setVariable [""PushPositions"", 	nil, true];" \n
                          "			_Vehicle setVariable [""PushPosLoaded"", 	nil, true];" \n
                          "			_Vehicle SetVariable [""NearFriends"", 	nil, true];" \n
@@ -1766,8 +1939,8 @@ class FSM
                          "			_Vehicle SetVariable [""EndingNow"", 		nil, true];" \n
                          "			_Vehicle setVariable [""EndAttempts"", 	nil, true];" \n
                          "			_Vehicle SetVariable [""endedAlready"", 	nil, true];" \n
-                         "			_Vehicle SetVariable [""FlankPosLoaded"", nil, true];" \n
-                         "			_Vehicle SetVariable [""pathPos"",		nil, true];" \n
+                         "			_Vehicle SetVariable [""FlankPosLoaded"", 	nil, true];" \n
+                         "			_Vehicle SetVariable [""pathPos"",			nil, true];" \n
                          "			" \n
                          "" \n
                          "{_X SetVariable [""Spotted"", nil, true];}ForEach(_Vehicle GetVariable ""AllSpotted"");" \n
@@ -1820,7 +1993,7 @@ class FSM
                          "" \n
                          "Private _Evading 			= (_Vehicle getVariable ""Evading"");" \n
                          "private _Hiding				= ((_Vehicle getVariable ""currentAction"") == ""hide"");" \n
-                         "private _Pushing			= ((_Vehicle getVariable ""currentAction"") == ""push"");" \n
+                         "private _Pushing				= ((_Vehicle getVariable ""currentAction"") == ""push"");" \n
                          "private _UpdatedEnemies 	= [_Vehicle] call Tally_Fnc_UpdateKnownEnemies;" \n
                          "Private _TargetPos 			= (_Vehicle getVariable ""EvadePos"");" \n
                          "Private _Minimum_Distance	= (_Vehicle getVariable ""MinDistEnemy"");" \n
@@ -1834,9 +2007,9 @@ class FSM
                          "private _DangerMoves		= [""hide"", ""flank""];" \n
                          "private _ReScan				= false;" \n
                          "private _TimedOut			= false;" \n
-                         "private _TimeOutStatus		= [""Assesing situation"", ""Attempting to locate push-positions""];" \n
-                         "private _RepairTimer		= time + 60;" \n
-                         "private _DataChecked			= _Vehicle GetVariable ""Viable"";" \n
+                         "private _TimeOutStatus		= [""Assesing situation"", ""Attempting to locate push-positions"", ""Scanning""];" \n
+                         "private _RepairTimer			= time + 60;" \n
+                         "private _DataChecked		= _Vehicle GetVariable ""Viable"";" \n
                          "" \n
                          "_Vehicle SetVariable [""LastConditionCheck"",	time + iterationTimer, true];" \n
                          "" \n
@@ -1881,24 +2054,13 @@ class FSM
                          "if(_TimedOut" \n
                          "or (_TimeSinceInit > 300))ExitWith	{" \n
                          "										[_Vehicle, ""TimeOut""] spawn ExitEnd;" \n
-                         "										If(FSMD3Bugger)then{systemChat ""Timed out""};	" \n
+                         "										If(FSMD3Bugger)then{systemChat ""Timed out""};" \n
+                         "										" \n
                          "									};" \n
                          "" \n
-                         "private _EnemyForce 	= [(_Vehicle GetVariable ""KnownEnemies"")] 	call Tally_Fnc_ForceCalculator;" \n
-                         "Private _FriendlyForce 	= [(_Vehicle GetVariable ""NearFriends"")] 	call Tally_Fnc_ForceCalculator;" \n
-                         "waituntil{!(Isnil ""_EnemyForce"" " \n
-                         "		&& {Isnil ""_FriendlyForce""})};" \n
-                         "		" \n
-                         "If !([_Vehicle] call Tally_Fnc_Is_Evading)exitWith{[_Vehicle, ""none""] spawn ExitEnd};" \n
-                         "if ((_Vehicle GetVariable ""currentAction"" == ""Scanning"")" \n
-                         "&& {_TimeSinceInit > 30})" \n
-                         "exitWith{[_Vehicle, ""scanning again""] spawn ExitEnd};" \n
-                         "" \n
-                         "" \n
-                         "private _NextAction 	= [_Vehicle, _EnemyForce, _FriendlyForce] call Tally_Fnc_Flank_Hide_Push;" \n
+                         "private _NextAction 	= [_Vehicle] call Tally_Fnc_Flank_Hide_Push;" \n
                          "private _LoadedHidePos	= (_Vehicle GetVariable ""HiddenPosLoaded"");" \n
                          "private _LoadedPushPos	= (_Vehicle GetVariable ""PushPosLoaded"");" \n
-                         "private _Commander		= (_Vehicle GetVariable ""Commander"");" \n
                          "" \n
                          "if !(_CurrentAction == _NextAction) then {" \n
                          "											If (FSMD3Bugger) then 	{" \n
@@ -2057,12 +2219,6 @@ class FSM
                          "				};" \n
                          "};" \n
                          "" \n
-                         "" \n
-                         "Tally_Fnc_GetSelectedPos = {" \n
-                         "params [""_Vehicle""];" \n
-                         "" \n
-                         "" \n
-                         "};" \n
                          "" \n
                          "" \n
                          "ExitEnd = {" \n
@@ -2447,11 +2603,13 @@ class FSM
                          "private _NoHideVar	= (_Vehicle GetVariable ""noHide"");" \n
                          "" \n
                          "Private _NoPush		= (!Isnil ""_NoPushVar"" 	&&{_NoPushVar});" \n
-                         "Private _Noflank	= (!Isnil ""_NoflankVar"" &&{_NoflankVar});" \n
+                         "Private _Noflank		= (!Isnil ""_NoflankVar"" &&{_NoflankVar});" \n
                          "Private _NoHide		= (!Isnil ""_NoHideVar"" 	&&{_NoHideVar});" \n
                          "private _NoOptions	= (_NoPush " \n
                          "					&&{_Noflank " \n
                          "					&& {_NoHide}});" \n
+                         "" \n
+                         "if(IsNil ""_EnemySide"")exitWith{""scan""};" \n
                          "" \n
                          "_EnemySide = [""enemy: "", _EnemySide] joinString """";" \n
                          "" \n
@@ -2509,7 +2667,8 @@ class FSM
                          "													Diag_Log ""________________________________"";" \n
                          "												};" \n
                          "" \n
-                         "If(_VehicleType == ""Artillery"")" \n
+                         "If((_VehicleType == ""Artillery"")" \n
+                         "or((_Vehicle IsKindof ""Helicopter"")))" \n
                          "then{" \n
                          "		_Action	= ""hide"";" \n
                          "	};" \n
@@ -3025,6 +3184,8 @@ class FSM
                          "" \n
                          "Tally_Fnc_Is_Evading = {" \n
                          "params [""_Vehicle""];" \n
+                         "If(Isnil ""_Vehicle"")exitWith{false};" \n
+                         "" \n
                          "Private _IsEvading 	= true;" \n
                          "Private _Evading 	= (_Vehicle getVariable ""Evading"");" \n
                          "" \n
@@ -3171,6 +3332,11 @@ class FSM
                          "" \n
                          "Tally_Fnc_DeploySmoke = {" \n
                          "Params [""_Vehicle""];" \n
+                         "" \n
+                         "if((!Isnil ""DOCnoSmoke""" \n
+                         "&&{DOCnoSmoke})" \n
+                         "or (diag_Fps < 25))exitWith{};" \n
+                         "" \n
                          "Private _Commander1 			= (_Vehicle getVariable ""commander"");" \n
                          "Private _Commander2				= (commander _Vehicle);" \n
                          "Private _TimeSinceLastSmoke		= (time - (_Vehicle getVariable ""LastSmoke""));" \n
@@ -3178,6 +3344,8 @@ class FSM
                          "private _GroupVehicles 			= ([group (driver _Vehicle)] call Tally_Fnc_GetGroupVehicles);" \n
                          "private _SmokeNear				= false;" \n
                          "private _VehiclePos				= (GetPos _Vehicle);" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "if (!Isnil ""_GroupVehicles"")" \n
                          "	then{" \n
@@ -3577,11 +3745,11 @@ class FSM
                          "{" \n
                          "	if!(_X in _AllCfgWeapons)then{_Unidentified_W pushBack _X};" \n
                          "	" \n
-                         "	if(_X in _Guns)		then{_LightWeapons = (_LightWeapons + 1)};" \n
+                         "	if(_X in _Guns)		then{_LightWeapons 	= (_LightWeapons + 1)};" \n
                          "	if(_X in _cannons)	then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
                          "	if(_X in _Rockets)	then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
-                         "	if(_X in _ATmisiles)then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
-                         "	if(_X in _AAmisiles)then{_AAcapability = (_AAcapability + 1)};" \n
+                         "	if(_X in _ATmisiles)	then{_HeavyWeapons = (_HeavyWeapons + 1)};" \n
+                         "	if(_X in _AAmisiles)	then{_AAcapability 	= (_AAcapability + 1)};" \n
                          "" \n
                          "" \n
                          "}ForEach _ChopperWeapons;" \n
@@ -3599,84 +3767,36 @@ class FSM
                          "_ChopperType};" \n
                          "" \n
                          "" \n
+                         "Tally_Fnc_SwitchEngagement = {" \n
+                         "params [""_Vehicle"", ""_On_OFF""];" \n
                          "" \n
-                         "Tally_Fnc_TaskManager = {" \n
+                         "		{" \n
+                         "		If(_On_OFF)then{" \n
+                         "							_X enableAI ""TARGET"";" \n
+                         "							_X enableAI ""AUTOCOMBAT"";" \n
+                         "							_X enableAI ""AUTOTARGET"";" \n
+                         "						}" \n
+                         "				   else{" \n
+                         "							_X disableAI ""TARGET"";" \n
+                         "							_X disableAI ""AUTOCOMBAT"";" \n
+                         "							_X disableAI ""AUTOTARGET"";" \n
+                         "						};" \n
+                         "		" \n
+                         "		}ForEach " \n
+                         "		 crew _Vehicle;" \n
+                         "	" \n
                          "" \n
                          "" \n
                          "" \n
-                         "					{" \n
-                         "						private _Vehicle = _X;" \n
-                         "						private _evading = _x getVariable ""Evading"";" \n
-                         "						" \n
-                         "						If ([_X] call Tally_Fnc_VehEligbleFSM" \n
-                         "						&& (Isnil ""_evading"")) 				then 	{" \n
-                         "																		" \n
-                         "																		[_Vehicle, VehMinimumDistance, FSMD3Bugger] spawn Tally_Fnc_EvadeVEh;" \n
-                         "																		sleep 0.1;" \n
-                         "																	" \n
-                         "																	};" \n
-                         "						If (_x getVariable ""Evading""" \n
-                         "						&&{(_x getVariable ""ready"")" \n
-                         "						&&{true }}) 	" \n
-                         "						then 	{													" \n
-                         "									" \n
-                         "									private _Timer = time + iterationTimer;" \n
-                         "									private _Script = [_x] spawn Tally_Fnc_Check_EvasionVeh_Conditions;" \n
-                         "									waituntil {sleep 0.02; (scriptDone _Script or time > _Timer)};" \n
-                         "									sleep 0.1;" \n
-                         "																			" \n
-                         "								}" \n
-                         "						else 	{" \n
-                         "								" \n
-                         "								};" \n
-                         "					sleep 0.05;" \n
-                         "					} ForEach vehicles;" \n
-                         "					" \n
-                         "					if (time > HintTimer) then	{" \n
-                         "													HintTimer = time + 180;" \n
-                         "													" \n
-                         "													If(FSMD3Bugger)" \n
-                         "													then{" \n
-                         "															hint (parsetext format[""DCO vehicle FSM: <br/>Version %1"", (Version)]);" \n
-                         "														};" \n
-                         "												" \n
-                         "												};" \n
-                         "					" \n
-                         "				if (time > TenSecondTaskTimer) then 	{" \n
-                         "														{						" \n
-                         "														if !(_X == deathGroup)" \n
-                         "														then 	{" \n
-                         "																	if(Units _X IsEqualTo [] " \n
-                         "																	or IsNull _X)" \n
-                         "																	then{" \n
-                         "																			deleteGroup _X;" \n
-                         "																		};" \n
-                         "																};" \n
-                         "														}ForEach AllGroups;" \n
-                         "													" \n
-                         "														{" \n
-                         "														[_X] call Tally_Fnc_AddEh" \n
-                         "														}ForEach Vehicles;" \n
-                         "														" \n
-                         "														diag_log format[""Active scripts: "", (diag_activeScripts select 0)];" \n
-                         "														TenSecondTaskTimer = time + 10;" \n
-                         "														 " \n
-                         "														" \n
-                         "													" \n
-                         "													};" \n
-                         "" \n
-                         "ScriptsRunningDOC		= (diag_activeScripts select 0);" \n
-                         "" \n
-                         "if(FSMD3Bugger" \n
-                         "&&{ScriptsRunningDOC > 50})" \n
-                         "then{" \n
-                         "		Hint (parsetext format [""%1 scripts are running at the same time <br/>You might experience some performance issues.<br/>Unless u got a BEAST pc"", (ScriptsRunningDOC)]);" \n
-                         "	};" \n
                          "};" \n
+                         "" \n
+                         "" \n
+                         "" \n
                          "" \n
                          "" \n
                          "Tally_Fnc_Reveal = {" \n
                          "Params [""_Reciever"", ""_TargetArr""];" \n
+                         "if(IsNil ""_TargetArr"")exitWith{};" \n
                          "Private _Side = (Side _Reciever);" \n
                          "{_Reciever reveal [_x, (_Side knowsAbout _x)]} ForEach _TargetArr;" \n
                          "};" \n
@@ -3810,7 +3930,7 @@ class FSM
                          "private _typeOfVehicle 	= ""unknown"";" \n
                          "private _CfgName		= (TypeOf _Vehicle);" \n
                          "private _parentType		= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 2);" \n
-                         "private _Firstparent	= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 1);" \n
+                         "private _Firstparent		= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 1);" \n
                          "private _Cousin			= (([(configFile >> ""CfgVehicles"" >>  (TypeOf _Vehicle)),true ] call BIS_fnc_returnParents) select 0);" \n
                          "" \n
                          "" \n
@@ -4073,7 +4193,7 @@ class FSM
                          "								};" \n
                          "								" \n
                          "if (_Vehicle isKindOf ""helicopter"") then {" \n
-                         "											_Multiplier	 = 3;" \n
+                         "											_Multiplier	 = 4;" \n
                          "										};" \n
                          "" \n
                          "_Minimum_Distance = (_Minimum_Distance * _Multiplier);" \n
@@ -4165,7 +4285,8 @@ class FSM
                          "&& 	{!IsNull _Vehicle " \n
                          "&& 	{Alive _Vehicle" \n
                          "&& 	{((_Vehicle Iskindof ""car"") " \n
-                         "or 	(_Vehicle Iskindof ""Tank""))" \n
+                         "or 	(_Vehicle Iskindof ""Tank"")" \n
+                         "or	(_Vehicle Iskindof ""Helicopter""))" \n
                          "&& 	{!(crew _Vehicle IsEqualTo [])" \n
                          "&& 	{Alive (driver _Vehicle)" \n
                          "&& 	{CanMove _Vehicle" \n
@@ -4386,8 +4507,6 @@ class FSM
                          "" \n
                          "};" \n
                          "" \n
-                         "systemChat ""DevFile read."";" \n
-                         "" \n
                          "Tally_Fnc_TerrainIntersects = {" \n
                          "private _AddedAltitude = 0;" \n
                          "private _IsInterSecting = false;" \n
@@ -4459,7 +4578,8 @@ class FSM
                          "Tally_Fnc_IsPos ={" \n
                          "Params[""_Arr""];" \n
                          "Private _Pos = true;" \n
-                         "if!(Count _Arr == 3) exitWith{false};" \n
+                         "if!(typeName _Arr == ""ARRAY"")exitWith{false};" \n
+                         "if!(Count _Arr == 3)exitWith{false};" \n
                          "" \n
                          "{" \n
                          "if!(typeName _X == ""SCALAR"")" \n
@@ -4467,6 +4587,8 @@ class FSM
                          "}ForEach _Arr;" \n
                          "" \n
                          "_Pos};" \n
+                         "" \n
+                         "systemChat ""DCO vehicle FSM loaded"";" \n
                          "Tally_Fnc_CuratorEH = {" \n
                          "{" \n
                          "_x addEventHandler [""CuratorObjectDeleted"", {" \n
@@ -4479,6 +4601,9 @@ class FSM
                          "					Hint (parsetext format [""Be carefull deleting units while they are engaged / activated. <br/>This could lead to scripts not exiting properly""]);" \n
                          "				};" \n
                          "		};" \n
+                         "		diag_log ""*******************************"";" \n
+                         "		diag_log ""A vehicle was deleted while script was running"";" \n
+                         "		diag_log ""*******************************"";" \n
                          "	" \n
                          "}];" \n
                          "}ForEach allCurators;" \n
@@ -4590,21 +4715,19 @@ class FSM
                         init = /*%FSM<STATEINIT""">*/"Diag_Log ""DCO_FSM has initiated"";" \n
                          "" \n
                          "" \n
-                         "" \n
-                         "if (_DeBug) then {" \n
-                         "							[] spawn Tally_Fnc_3Dmarkers;" \n
-                         "" \n
-                         "};" \n
                          "AreaScan = false;" \n
-                         "Version	 = 1.01;" \n
+                         "Version	 = 1.02;" \n
                          "deathGroup = createGroup civilian;" \n
                          "HintTimer			= 20;" \n
                          "TenSecondTaskTimer	= 0;" \n
-                         "iterationTimer		= 1;" \n
+                         "iterationTimer		= 2;" \n
                          "ScriptsRunningDOC	= (diag_activeScripts select 0);" \n
                          "{[_X] call Tally_Fnc_AddEh}ForEach Vehicles;" \n
                          "[] call Tally_Fnc_CuratorEH;" \n
-                         "[] remoteExecCall [""Tally_Fnc_3Dmarkers"", 0, true];"/*%FSM</STATEINIT""">*/;
+                         "[] remoteExecCall [""Tally_Fnc_3Dmarkers"", 0, true];" \n
+                         "[""_____________________________""] call deBugMessage;" \n
+                         "[""DCO_Vehicle FSM Version "", (Version)] call deBugMessage;" \n
+                         "[""_____________________________""] call deBugMessage;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
