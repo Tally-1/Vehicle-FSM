@@ -1,4 +1,212 @@
+Tally_Fnc_reApplyWaypoints = {
+params ["_Vehicle"];
 
+private _PreviousWayPoints	= (_Vehicle getVariable "wayPoints");
+private _Group				= group _Vehicle;
+private _GroupVehicles		= (_Vehicle getVariable "GroupVehicles");
+private _Wait				= 10;
+private _reApply				= true;
+
+
+
+
+sleep 10;
+
+Private _Evading 		= (_Vehicle getVariable "Evading");
+		_Evading 		= (!IsNil "_Evading");
+		_CrewStatus 	 	= [_Vehicle] call Tally_Fnc_CheckCrewStatus;
+
+if	(isNil "_Vehicle")			exitWith{["vehicle undefined, could not re-apply wayPoints"] call debugMessage};
+if	(isNil "_Group")			exitWith{["group undefined, could not re-apply wayPoints"] call debugMessage};
+if	(isNil "_PreviousWayPoints")exitWith{["PreviousWayPoints undefined, could not re-apply wayPoints"] call debugMessage};
+if 	(_Evading)					exitWith{["Cannot re-apply wayPoints, vehicle is still active"] call debugMessage};
+if 	(!Alive _Vehicle)			exitWith{["Cannot re-apply wayPoints, vehicle Destroyed"] call debugMessage};
+
+
+
+if	(isNil "_GroupVehicles")	then{_GroupVehicles = ([_Group] call Tally_Fnc_GetGroupVehicles); sleep 1};
+if	(isNil "_GroupVehicles")	exitWith{["groupVehicles undefined, could not re-apply wayPoints"] call debugMessage};
+
+
+for "_I" from 1 to _Wait 
+do 	{
+		
+		sleep 1;
+		
+		_reApply = [
+					_Vehicle, 
+					_PreviousWayPoints,
+					_GroupVehicles
+					] call Tally_Fnc_ReApplyConditions;
+		
+		if(_reApply)exitWith{["Leeets goooo"] call debugMessage};
+		
+		
+	};
+
+if(_reApply)
+then{
+		["re-applying wayPoints"] call debugMessage;
+		[_Group] call Tally_Fnc_DeleteWP;
+		
+		{
+			private _Position 	= _x select 0;
+			private _Index 		= _x select 1;
+			private _behaviour 	= _x select 2;
+			private _speed 		= _x select 3;
+			private _formation 	= _x select 4;
+			
+			private _wp = _Group addWaypoint [_Position, 0, _Index];
+			_wp setWaypointBehaviour 	_behaviour;
+			_wp setWaypointSpeed  		_speed;
+			_wp setWaypointFormation 	_formation;
+			
+			
+		}ForEach 
+		_PreviousWayPoints;
+	}
+else{
+		["could not re-apply wayPoints. Conditions not met"] call debugMessage;
+	};
+
+};
+
+Tally_Fnc_ReApplyConditions = {
+params["_Vehicle", "_PreviousWayPoints", "_GroupVehicles"];
+
+
+				
+		private	_Evading 		= (_Vehicle getVariable "Evading");
+				_Evading 		= (!IsNil "_Evading");
+		private _GroupEngaged 	= false;
+		private _Dead			= (!Alive _Vehicle 
+								or (count (crew _Vehicle) < 1));
+		private _deadCrew		= true;
+		private _CurrentWP		= [_Vehicle] call Tally_Fnc_GetWaypointInfo;
+		private _AlreadyDone	= (_CurrentWP isEqualto _PreviousWayPoints);
+		private	_Group 			= group _Vehicle;
+		private _noGroup		= (isNil "_Group"
+								or isNull _Group);
+		
+		{
+			private _engaged = (_x getVariable "Evading");
+			if (!IsNil "_engaged")
+			then{
+					_GroupEngaged = true;
+				};
+		}ForEach 
+		_GroupVehicles;
+		
+		{
+			if (Alive _X)
+			then{
+					_deadCrew = false; 
+				};
+		}ForEach 
+		crew _Vehicle;
+		
+		if(!(_Evading)
+		&&{!(_GroupEngaged)
+		&&{!(_Dead)
+		&&{!(_noGroup)
+		&&{!(_deadCrew)
+		}}}})exitWith{true};
+		
+false};
+
+
+
+Tally_Fnc_GetWaypointInfo = {
+params ["_Vehicle"];
+private _WayPointArr	= [];
+private _Group			= group _Vehicle;
+private _destroyed 		= [_Vehicle] call Tally_Fnc_crewDead;
+if(_destroyed)exitWith{_WayPointArr};
+
+private _CurrentIndex = (currentWaypoint _Group);
+private _List 		 = waypoints _Group;
+
+for "_I" from 1 to _CurrentIndex do{_List deleteAt 0};
+
+{
+	private _Pos 		= waypointPosition 	_x;
+	private _Index 		= _x select 1;
+	private _behaviour 	= waypointBehaviour _x;
+	private _speed 		= waypointSpeed 	_x;
+	private _formation	= waypointFormation _x;
+	
+	private _wpInfo = [	_Pos, 
+						_Index, 
+						_behaviour, 
+						_speed, 
+						_formation];
+	
+	_WayPointArr pushBackUnique _wpInfo;
+}forEach 
+_List;
+
+
+
+_WayPointArr};
+
+
+Tally_Fnc_CopyActiveWaypoints = {
+params ["_FromGrp", "_ToGrp"];
+
+if(isNil "_FromGrp"
+or IsNil "_ToGrp") exitWith {["could not copy wp from a NIL group"] call debugMessage; []};
+
+if(isNull _FromGrp
+or isNull _ToGrp) exitWith {["could not copy wp from a NULL group"] call debugMessage; []};
+
+private _WayPointArr = [];
+private _CurrentIndex = (currentWaypoint _FromGrp);
+private _List 		 = waypoints _FromGrp;
+
+
+if(_CurrentIndex > 0)
+then{
+		for "_I" from 1 to _CurrentIndex do{_List deleteAt 0};
+	};
+
+if(count _List > 0)
+then{
+		
+		{
+			private _Pos 		= waypointPosition 	_x;
+			private _Index 		= _x select 1;
+			private _behaviour 	= waypointBehaviour _x;
+			private _speed 		= waypointSpeed 	_x;
+			private _formation	= waypointFormation _x;
+			
+			private _wpInfo = [	_Pos, 
+								_Index, 
+								_behaviour, 
+								_speed, 
+								_formation];
+			
+			_WayPointArr pushBackUnique _wpInfo;
+		}forEach 
+		_List;
+		
+		
+		{
+		private _Position 	= _x select 0;
+		private _behaviour 	= _x select 2;
+		private _speed 		= _x select 3;
+		private _formation 	= _x select 4;
+
+		private _wp = _ToGrp addWaypoint [_Position, 0];
+		_wp setWaypointBehaviour 	_behaviour;
+		_wp setWaypointSpeed  		_speed;
+		_wp setWaypointFormation 	_formation;
+
+		}ForEach 
+		_WayPointArr;
+	};
+
+
+};
 Tally_Fnc_AssignFlankPositions = {
 params["_Vehicle", "_EnAvgPos", "_Initiator"];
 
@@ -140,6 +348,8 @@ switch (_NextAction) do
 };
 
 };
+
+
 Tally_Fnc_EvadeVEh = {
 
 Private _Minimum_Distance 		= 400; 
@@ -230,7 +440,6 @@ if !(_unit == commander _Vehicle or _unit == gunner _Vehicle or _unit == driver 
 };
 };
 
-
 Private _EnemyDir 			= ((_Vehicle getRelDir _Enemy) + (Getdir _Vehicle));
 Private _evasionDir 			= ((_EnemyDir - 180) + 0);
 Private _GoDistance 			= ((_Minimum_Distance - (_Vehicle Distance2D _Enemy)) + (_Minimum_Distance / 5)); 
@@ -239,6 +448,14 @@ private _VehPos		 		= (GetPos _Vehicle);
 private _AvgEnemyAltitude 	= [_enemyPositions] call Tally_Fnc_GetAVGheight;
 private _Timer				= (round((time) + (_Minimum_Distance / ([_Vehicle] call Tally_Fnc_Timer_divisor))));
 private _LastSmoke			= (_Vehicle getVariable "LastSmoke");
+private _GroupVehicles 		= ([(Group _Vehicle)] call Tally_Fnc_GetGroupVehicles);
+sleep 0.1;
+
+sleep 0.1;
+
+sleep 0.1;
+
+
 
 private _HidePos 			=  [_VehPos select 0, 
 								_VehPos select 1, 
@@ -249,9 +466,8 @@ private _HidePos 			=  [_VehPos select 0,
 If (_EnemyDist < 50) then {_evasionDir = (getDir _Vehicle)};
 
 Private _EvasionPos = [_VehPos select 0, _VehPos select 1, _evasionDir, _GoDistance] call Tally_Fnc_CalcAreaLoc;
-[_Group] spawn Tally_Fnc_DeleteWP;
-sleep 0.1;
 
+sleep 0.1;
 
 _Vehicle SetVariable ["initiated",			time,											true];
 _Vehicle SetVariable ["Cluster",				_EnemyCluster,									true];
@@ -286,6 +502,7 @@ _Vehicle SetVariable ["PushPositions", 		[], 											true];
 _Vehicle SetVariable ["enemyPositions", 		_enemyPositions,									true];
 _Vehicle SetVariable ["AvgEnemyAltitude", 	_AvgEnemyAltitude,								true];
 _Vehicle SetVariable ["Group",				_Group,											true];
+_Vehicle SetVariable ["GroupVehicles",		_GroupVehicles,									true];
 _Vehicle SetVariable ["Secondary_Groups",	[],												true];
 _Vehicle SetVariable ["NearFriends", 		([_Vehicle, true] call Tally_Fnc_GetNearFriends),	true];
 _Vehicle SetVariable ["EndingScript",		false,											true];
@@ -296,6 +513,8 @@ _Vehicle SetVariable ["LastMove",			time + 5,										true];
 _Vehicle SetVariable ["endedAlready",		false,											true];
 _Vehicle SetVariable ["lastRepair",			time - 60,										true];
 _Vehicle SetVariable ["pathPos",				[],												true];
+
+_Group SetVariable 	["lastGroupReset",		time,											true];
 
 if(isnil "_LastSmoke")then	{
 								_Vehicle SetVariable ["LastSmoke", 		time - 120,			true];
@@ -309,65 +528,15 @@ Private _Areas = [(getpos _Enemy), _Minimum_Distance, _Vehicle, _evasionDir] cal
 _Vehicle SetVariable ["Areas", 	_Areas, true];
 
 
+sleep 0.1;
+
 [_Vehicle, _EnAvgPos] call Tally_Fnc_QuickDecision;
 if(_vehicle IskindOf "HeliCopter")
 exitwith{
-		
-		[_vehicle, 
-		_HidePos,
-		_EnAvgPos] spawn{
-							params["_Chopper", "_EvasionPos", "_EnAvgPos"];
-							
-							_Chopper SetVariable ["EvadePos", _EvasionPos, true];
-							
-							private _Time		= 2;
-							private _Brake_I		= 20;
-							private _Sleep		= _Time / _Brake_I;
-							Private _speed 		= (velocityModelSpace _chopper) select 1;
-							private _DriftX = (velocityModelSpace _chopper) select 0;
-							private _DriftZ = (velocityModelSpace _chopper) select 2;
-							Private _Reduction 	= _speed / _Brake_I;
-							private _Pilot		= (driver _Chopper);
-							private _Group		= group _Chopper;
-							
-							
-							
-							
-							[_Chopper, false] spawn Tally_Fnc_SwitchEngagement;
-							[_Chopper, _EvasionPos] call Tally_Fnc_SoftMove;
-							_Chopper setVariable ["currentAction", 	"Hide", 		true];
-							_Chopper setVariable ["HiddenPosLoaded", true, 			true];
-							_Chopper SetVariable ["EvadePos", 		_EvasionPos, 	true];
-							_Chopper SetVariable ["HidePositions",	[_EvasionPos],	true];
-							_Chopper SetVariable ["ready", 			true, 			true];
-							
-							for "_I" from 1 to _Brake_I do{
-														[_Chopper, false] spawn Tally_Fnc_SwitchEngagement;
-														_speed = (velocityModelSpace _chopper) select 1;
-														_DriftX = (velocityModelSpace _chopper) select 0;
-														_DriftZ = (velocityModelSpace _chopper) select 2;
-														_Chopper setVelocityModelSpace [_DriftX, (_speed - _Reduction), _DriftZ];
-														sleep _Sleep;
-														_Pilot 			setBehaviourStrong "AWARE";
-														(Group _Pilot) 	setBehaviourStrong "AWARE";
-														_Group 			setCombatMode 	   "YELLOW";
-													};
-							for "_I" from 1 to 180 do		{
-																private _Dir = (Getdir _Chopper);
-																_Chopper setDir (_Dir -1);
-																sleep (2 / 180);
-															};
-							_speed = (velocityModelSpace _chopper) select 1;
-							_DriftX = (velocityModelSpace _chopper) select 0;
-							_DriftZ = (velocityModelSpace _chopper) select 2;
-							
-							for "_I" from 1 to _Brake_I do{_Chopper setVelocityModelSpace [_DriftX, (_speed - _Reduction), _DriftZ]; sleep _Sleep};
-							
-							
-						};
-		
-		
-	};
+			[_vehicle, 
+			_HidePos,
+			_EnAvgPos] spawn Tally_Fnc_ChopperEvasion;
+		};
 
 
 if(IsNil "_Initiator")
@@ -387,7 +556,7 @@ else{
 					or(time - _Timer > 5))
 				 };
 	};
-
+if([_Vehicle] call Tally_Fnc_PlayerInVeh) exitwith{};
 
 
 
@@ -426,19 +595,18 @@ If (FSMD3Bugger) then 	{
 
 [_Vehicle] spawn Tally_Fnc_Check_EvasionVeh_Conditions;
 
-private _GroupVehicles = ([_Group] call Tally_Fnc_GetGroupVehicles);
-
 sleep 2;
 
 {
 If ([_X] call Tally_Fnc_VehEligbleFSM) then {
 												Private _Evading 		= (_X getVariable "Evading");
-												
-												if(isNil "_Evading")then{
-																			private _NewDistance 	= (_X distance2d _Enemy) * 1.1;
-																			[_x, _NewDistance, FSMD3Bugger, _Enemy, _Vehicle] spawn Tally_Fnc_EvadeVEh;
-																			sleep 0.1;
-																		};												
+												private _Eligible			= ([_X] call Tally_Fnc_VehEligbleFSM);
+												if(isNil "_Evading"
+												&&{_Eligible})then{
+																	private _NewDistance 	= (_X distance2d _Enemy) * 1.1;
+																	[_x, _NewDistance, FSMD3Bugger, _Enemy, _Vehicle] spawn Tally_Fnc_EvadeVEh;
+																	sleep 0.1;
+																};												
 											};
 }
 ForEach _GroupVehicles;
@@ -462,17 +630,6 @@ or	_VehicleType == "APC") then {
 
 };
 
-Tally_Fnc_PlayerInVeh2 = {
-params["_Vehicle"];
-Private _InVeh = false;
-{
-if((vehicle _X) == _Vehicle)
-exitwith{
-			_InVeh = true;
-		};
-} ForEach AllPlayers;
-
-_InVeh};
 
 
 
@@ -491,7 +648,13 @@ then {_InVeh = true};
 
 if!(_InVeh)
 then{
-		_InVeh = [_Vehicle] call Tally_Fnc_PlayerInVeh2;
+				{
+					if((vehicle _X) == _Vehicle)
+					exitwith{
+								_InVeh = true;
+							};
+				} ForEach 
+				AllPlayers;
 	};
 
 _InVeh};Tally_Fnc_TaskManager = {
@@ -501,6 +664,12 @@ _InVeh};Tally_Fnc_TaskManager = {
 					{
 						private _Vehicle = _X;
 						private _evading = _x getVariable "Evading";
+						Private _Group = Group _Vehicle;
+	
+						if(!Isnil "_Group")
+						then{
+								 _Group setGroupOwner 2;
+							};
 						
 						If ([_X] call Tally_Fnc_VehEligbleFSM
 						&& (Isnil "_evading")) 				then 	{
@@ -538,7 +707,8 @@ _InVeh};Tally_Fnc_TaskManager = {
 					
 				if (time > TenSecondTaskTimer) then 	{
 														{						
-														if !(_X == deathGroup)
+														if !(_X == deathGroup
+														or	 _X getVariable "placeHolder")
 														then 	{
 																	if(Units _X IsEqualTo [] 
 																	or IsNull _X)
@@ -549,7 +719,12 @@ _InVeh};Tally_Fnc_TaskManager = {
 														}ForEach AllGroups;
 													
 														{
-														[_X] call Tally_Fnc_AddEh
+															[_X] call Tally_Fnc_AddEh;
+															if([_X] call Tally_Fnc_Available_And_Wp)
+															then{
+																	private _Group = (group _X);
+																	
+																};
 														}ForEach Vehicles;
 														
 														diag_log format["Active scripts: %1", (diag_activeScripts select 0)];
@@ -562,9 +737,10 @@ _InVeh};Tally_Fnc_TaskManager = {
 ScriptsRunningDOC		= (diag_activeScripts select 0);
 
 if(FSMD3Bugger
-&&{diag_fps < 20})
+&&{diag_fps < 20
+&&{!IsDedicated}})
 then{
-		Hint (parsetext format ["Your FPS is dangerously low, this might cause issues with the running scripts.<br/>%1 FPS.", (diag_fps)]);
+		[(parsetext format ["Your FPS is dangerously low, this might cause issues with the running scripts.<br/>%1 FPS.", (diag_fps)])] remoteExec ["Hint", 0];
 	};
 };
 Tally_Fnc_InitRepairs = {
@@ -707,7 +883,7 @@ if (_RepairType == 0)then	{
 								sleep 0.1;
 								detach _Unit;
 								_unit disableAI "all";
-								[_unit, _Move, "FULL"] call BIS_fnc_ambientAnim;
+								[_unit, _Move, "FULL"] RemoteExecCall ["BIS_fnc_ambientAnim", 0];
 								for "_I" from 1 to _RepairTime
 								do 	{
 										if(!Alive _Unit
@@ -728,7 +904,7 @@ if (_RepairType == 0)then	{
 								if (fuel _Vehicle == 0) then 	{
 																	_Vehicle SetFuel 0.1;
 																};
-								_unit call BIS_fnc_ambientAnim__terminate;
+								[_unit] RemoteExecCall ["BIS_fnc_ambientAnim__terminate", 0];
 							};
 if(_Success)then{
 					_Vehicle setVariable ["currentAction", "Repairs completed", true];
@@ -765,6 +941,10 @@ Tally_Fnc_FilterPos = {
 Params ["_Vehicle", "_Center"];
 
 private _PosCount = (count (_Vehicle GetVariable "Positions"));
+if (Isnil "_PosCount"
+or Isnil "_Vehicle"
+or Isnil "_Center")exitWith{["Could not filter flanking positions because values were undefined"] call debugMessage};
+
 
 Diag_Log format ["%1 positions pre-selected", (count (_Vehicle GetVariable "Positions"))];
 
@@ -797,7 +977,11 @@ If (FSMD3Bugger) then {
 Tally_Fnc_Remove_NonTerrain_IntersectPos = {
 params["_TargetPos", "_Vehicle"];
 
+private _OldArr = (_Vehicle GetVariable "HidePositions");
 private _NewArr = [];
+
+if(isnil "_OldArr")exitWith{_NewArr};
+
 
 private _Center				= [_TargetPos select 0,
 							   _TargetPos select 1,
@@ -890,6 +1074,9 @@ then{
 
 If(!IsNil "_Initiator")
 then{
+Private _InitDistance = (_Initiator distance2d _Vehicle);
+if (IsNil "_InitDistance")exitWith{};
+if(_InitDistance > 200) exitWith{};
 		waituntil{
 					sleep 0.1;
 					private _Loaded 	= (_Initiator GetVariable "HiddenPosLoaded");
@@ -911,7 +1098,7 @@ then{
 		&&{(_Initiator GetVariable "HiddenPosLoaded")})
 		then{
 				_Vehicle SetVariable ["HidePositions", _FriendlyHidePositions, 	true];
-				_Vehicle SetVariable ["HiddenPosLoaded",true, 					true];
+				_Vehicle SetVariable ["HiddenPosLoaded",true, 				true];
 				_CopiedPos = true;
 				["Hiding positions were copied from ", _Initiator] call debugMessage;
 			};
@@ -1025,19 +1212,19 @@ Private _Distance			=	(_area1Size * 1.6);
 Private _SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), _Dir, _Distance] call Tally_Fnc_CalcAreaLoc);
 								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize, _Vehicle];
 								
-								If (FSMD3Bugger) then {[_Vehicle, "RECTANGLE", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, "SolidBorder"] call Tally_Fnc_VehMarkers}; 
+								
 								_Distance = (_area1Size * 0.8);
 
 		_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir + 67.5), _Distance] call Tally_Fnc_CalcAreaLoc);
 								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize, _Vehicle];
 
-								If (FSMD3Bugger) then {[_Vehicle, "RECTANGLE", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, "SolidBorder"] call Tally_Fnc_VehMarkers}; 
+								
 
 
 		_SearchAreaPos 		= 	([(_area1pos select 0), (_area1pos select 1), (_Dir - 67.5), _Distance] call Tally_Fnc_CalcAreaLoc);
 								_Areas PushBackUnique [_SearchAreaPos, _SearchAreaSize, _Vehicle];
 
-								If (FSMD3Bugger) then {[_Vehicle, "RECTANGLE", _SearchAreaPos, 0, _SearchAreaSize, _SideColor, "SolidBorder"] call Tally_Fnc_VehMarkers};
+								
 
 
 	
@@ -1132,8 +1319,8 @@ if (isNil "_Center")
 
 
 
-
-Tally_Fnc_CalcAreaLoc = {
+missionNamespace setVariable[
+"Tally_Fnc_CalcAreaLoc", {
 params ["_OrigX", "_OrigY", "_Dir", "_Distance"];
 
 
@@ -1143,7 +1330,8 @@ Private _Newy = ((cos _Dir) * _Distance) + _OrigY;
 Private _SearchAreaPos = [_NewX,_NewY, 0];
 
 
-_SearchAreaPos};
+_SearchAreaPos}
+, true];
 
 
 
@@ -1340,6 +1528,15 @@ then{
 
 _PushPositions};
 
+Tally_Fnc_PathDrawer = {
+waituntil 	{sleep 10 + (ceil (random 1 * 10));
+			 !IsNil "Tally_Fnc_GetPathPositions"};
+[] call Tally_Fnc_VerifyData;
+call ConfirmData;
+
+};
+
+
 Tally_Fnc_PushPositions = {
 private _SecondScan = false;
 params ["_Vehicle", "_SecondScan"];
@@ -1383,6 +1580,8 @@ for "_I" from 1 to 3 do {
 							private _Positions = (_Vehicle GetVariable "PushPositions");
 							
 							if (!Isnil "_Positions") exitWith {};
+							sleep 0.1;
+							["Re-scanning for Push-positions"] call debugMessage;
 						};
 
 private _PosCount = count (_Vehicle GetVariable "PushPositions");
@@ -1620,7 +1819,7 @@ if (Count _LOSrank > 1) then{
 Tally_Fnc_EndEvasionVeh = {
 params ["_Vehicle", "_EndStatus"];
 private _ScriptRunning 	= (_Vehicle GetVariable "EndingNow");
-private _Action 		= (_Vehicle GetVariable "currentAction");
+private _Action 			= (_Vehicle GetVariable "currentAction");
 private _Attempts 		= (_Vehicle GetVariable "EndAttempts");
 private _Ended 			= (_Vehicle GetVariable "endedAlready");
 private _lastOutro		= (_Vehicle GetVariable "lastOutro");
@@ -1637,6 +1836,7 @@ if (IsNil "_Attempts")	then{
 						else{
 								_Vehicle setVariable ["EndAttempts", 	_Attempts + 1, true];
 							};
+if(isNil "_EndStatus")then{_EndStatus = "unknown"};
 
 _Vehicle SetVariable ["lastOutro", time, true];
 _Vehicle setVariable ["currentAction", 	_EndStatus, true];
@@ -1645,17 +1845,190 @@ private _Timer = time + 3;
 if!(_Ended)
 then{
 		private _Script = [_Vehicle, _EndStatus, _Action] spawn Tally_Fnc_PostScriptActions;
-		waituntil{(scriptDone _Script
-				or _Timer < time)};
+		waituntil{
+				 private _timedOut 	= _Timer < time;
+				 private _ScriptDone = scriptDone _Script;
+				 private _Nil		= isnil "_ScriptDone";
+					
+					sleep 0.1;
+					if (_Nil)	exitWith{true};
+					if(_timedOut
+					or _ScriptDone)exitWith{true};
+					
+					false
+				 };
 	};
+
 
 [_Vehicle] call Tally_Fnc_RemoveVehicleVars;
 _vehicle allowCrewInImmobile true;
 (Gunner _Vehicle) doWatch objNull;
+
+
+
+sleep iterationTimer * 5;
+
+if([_vehicle] call Tally_Fnc_Available_And_Wp)
+				then{
+						[(group _vehicle)] call Tally_Fnc_ResetGroup;
+					};
+
+};
+
+Tally_Fnc_ResumeOriginalPath = {
+params["_Vehicle"];
+private _destroyed 	= [_Vehicle] call Tally_Fnc_crewDead;
+if(!(_destroyed))
+then{
+		private _Group 		= (group _Vehicle);
+		private _hasWP		= ((count waypoints _Group) > 0);
+		private _engaged	= [_Vehicle] call Tally_Fnc_GroupFsmActive;
+		
+		if([_vehicle] call Tally_Fnc_Available_And_Wp)
+		then{
+				
+				
+				sleep iterationTimer;
+				
+				if([_vehicle] call Tally_Fnc_Available_And_Wp)
+				then{
+								_Group 			= (group _Vehicle);
+						private _Wp				= (waypoints _Group) select (currentWaypoint _Group);
+						private _pos 			= waypointPosition _Wp;
+						private _LeaderVeh		= vehicle (leader _group);
+						private _LeaderIsVeh		= false;
+						
+						if(!IsNil "_Wp")
+						then{
+						if!(_LeaderVeh iskindof "man")then{
+															[_LeaderVeh, _pos] spawn Tally_Fnc_SoftMove; 
+															_LeaderIsVeh = true;
+														  };
+						units _group doFollow leader _group;
+						sleep iterationTimer * 2;
+						};
+						
+						_Group SetVariable ["lastGroupReset",	nil, true];
+						[_vehicle] spawn Tally_Fnc_RedoWP;
+						
+					};
+			};
+		
+	};
+
 };
 
 
+Tally_Fnc_RedoWP = {
+params ["_Vehicle"];
+if([_Vehicle] call Tally_Fnc_crewDead)exitWith{["Cannot re-initiate waypoints, crew is dead / nil / null / absent"]call debugMessage};
 
+private _Group				= group _Vehicle;
+private _PreviousWayPoints 	= [_Vehicle] call Tally_Fnc_GetWaypointInfo;
+private _CurrentIndex 		= (currentWaypoint _Group);
+private _Busy				= (_Group getVariable "resettingWP");
+
+if(!isnil "_Busy")exitWith{};
+
+["Re-applying waypoints"]call debugMessage;
+
+_Group setVariable ["resettingWP", true, true];
+[_Group] spawn Tally_Fnc_ResetGroup;
+
+sleep 0.1;
+[_Group] call Tally_Fnc_DeleteWP;
+[_Group] call Tally_Fnc_DeleteWP;
+[_Group] call Tally_Fnc_DeleteWP;
+sleep 0.1;
+
+		{
+			
+			private _Index 		= _x select 1;
+			
+			
+			If(_Index > _CurrentIndex)
+			then 	{
+						private _Position 	= _x select 0;
+						private _behaviour 	= _x select 2;
+						private _speed 		= _x select 3;
+						private _formation 	= _x select 4;
+						
+						private _wp = _Group addWaypoint [_Position, 0];
+						_wp setWaypointBehaviour 	_behaviour;
+						_wp setWaypointSpeed  		_speed;
+						_wp setWaypointFormation 	_formation;
+						_wp setWaypointCompletionRadius 60;
+						sleep 0.1;
+					
+					};
+			
+			
+			
+			
+		}ForEach 
+		_PreviousWayPoints;
+
+_Group setCurrentWaypoint [_Group, _CurrentIndex];
+_Group setVariable ["resettingWP", nil, true];
+};
+
+Tally_Fnc_Available_And_Wp = {
+params ["_Vehicle"];
+private _destroyed 	= [_Vehicle] call Tally_Fnc_crewDead;
+
+if(_destroyed)exitWith{false};
+
+private _Group 		= (group _Vehicle);
+private _hasWP		= ((count waypoints _Group) > 0);
+private _engaged	= [_Vehicle] call Tally_Fnc_GroupFsmActive;
+
+private _Available 	= (_hasWP
+					&&{!(_engaged)});
+
+_Available};
+
+
+Tally_Fnc_GroupFsmActive = {
+params["_Vehicle"];
+private _Active = false;
+private _GroupVehicles = [(Group _Vehicle)] call Tally_Fnc_GetGroupVehicles;
+
+_GroupVehicles pushBackUnique _Vehicle;
+
+{
+
+	Private _Evading 		= (_X getVariable "Evading");
+			_Evading 		= (!IsNil "_Evading");
+			
+	if(_Evading)then{_Active = true};
+		
+}forEach _GroupVehicles;
+
+_Active};
+
+
+
+Tally_Fnc_crewDead = {
+private _AllDead = true;
+params ["_Vehicle"];
+private _Group = (group _Vehicle);
+
+if(IsNil "_Vehicle")	exitWith{true};
+if(IsNil "_Group")		exitWith{true};
+if(!Alive _Vehicle)		exitWith{true};
+if(IsNull _Group) 		exitWith{true};
+
+{
+	if(Alive _X)exitWith{_AllDead = false};
+}ForEach 
+(Crew _Vehicle);
+
+if!((crew _Vehicle)isEqualTo([]))
+then{_AllDead = false};
+
+
+
+_AllDead};
 
 Tally_Fnc_PostScriptActions = {
 params ["_Vehicle", "_EndStatus", "_Action"];
@@ -1666,7 +2039,7 @@ sleep 2;
 
 private _ReEngageOrders 	= ["flank", "push"];
 private _TargetPos 			= (_Vehicle GetVariable "Centro"); 			if(IsNil "_TargetPos")exitWith{};
-private _Crew 				= (_Vehicle GetVariable "Crew");			if(IsNil "_Crew")exitWith{["Crew is not defined on vehicle: ", _Vehicle] call debugMessage};
+private _Crew 				= (_Vehicle GetVariable "Crew");				if(IsNil "_Crew")exitWith{["Crew is not defined on vehicle: ", _Vehicle] call debugMessage};
 private _MinDist				= (_Vehicle GetVariable "MinDistEnemy");
 private _outOfReach 		= (_TargetPos distance2d (getpos _Vehicle) > (_MinDist * 0.75));
 private _CrewWorks			= (_Vehicle GetVariable "crewStatus")	== "Operational";
@@ -1701,7 +2074,7 @@ if (IsNil "_Group")	exitWith 	{};
 if (IsNull _Group) 	exitWith 	{};
 
 
-[_Group] call Tally_Fnc_DeleteWP;
+
 sleep 0.1;
 
 {_X enableAI "AUTOCOMBAT"} ForEach (_Vehicle getVariable "crew");
@@ -1736,10 +2109,7 @@ If	(_CrewWorks
 or	(_Chopper))
 && {_outOfReach}}) then{
 							
-							Private _Script = [(group _Driver)] spawn Tally_Fnc_ResetGroup;
-							waituntil {	sleep 0.02; 
-										((ScriptDone _Script) 
-										or (_Timer < time))};
+							
 							
 							
 							[_Vehicle, _TargetPos] spawn Tally_Fnc_SoftMove;
@@ -1769,13 +2139,13 @@ params ["_Vehicle"];
 			_Vehicle SetVariable ["TwoTimesHideSearch",nil, true];
 			_Vehicle SetVariable ["LastConditionCheck",nil, true];
 			_Vehicle SetVariable ["initiated",		nil, true];
-			_Vehicle SetVariable ["hiding", 		nil, true];
+			_Vehicle SetVariable ["hiding", 			nil, true];
 			_Vehicle SetVariable ["Cluster", 		nil, true];
-			_Vehicle SetVariable ["Centro", 		nil, true];
+			_Vehicle SetVariable ["Centro", 			nil, true];
 			_Vehicle SetVariable ["Spacing", 		nil, true];
 			_Vehicle SetVariable ["Positions", 		nil, true];
 			_Vehicle SetVariable ["HidePositions", 	nil, true];
-			_Vehicle SetVariable ["HiddenPosLoaded",nil, true];
+			_Vehicle SetVariable ["HiddenPosLoaded",	nil, true];
 			_Vehicle SetVariable ["Areas", 			nil, true];
 			_Vehicle SetVariable ["SelPosMarked",	nil, true];
 			_Vehicle SetVariable ["Evading", 		nil, true];
@@ -1802,6 +2172,8 @@ params ["_Vehicle"];
 			_Vehicle SetVariable ["endedAlready", 	nil, true];
 			_Vehicle SetVariable ["FlankPosLoaded", 	nil, true];
 			_Vehicle SetVariable ["pathPos",			nil, true];
+			_Vehicle SetVariable ["GroupVehicles",	nil, true];
+			
 			
 
 {_X SetVariable ["Spotted", nil, true];}ForEach(_Vehicle GetVariable "AllSpotted");
@@ -1816,6 +2188,315 @@ If !(alive _Vehicle) then {
 												  };
 
 
+};Tally_Fnc_GetChopperType = {
+params ["_Chopper"];
+Private _ChopperWeapons = [_Chopper] call Tally_Fnc_GetVehicleWeapons;
+private _Unidentified_W = [];
+private _ChopperType 	= "Unarmed Chopper";
+private _LightWeapons 	= 0;
+Private _HeavyWeapons 	= 0;
+Private _AAcapability 	= 0;
+
+
+
+Private _AllCfgWeapons = [	"CUP_Vacannon_Yakb_veh",
+							"CUP_Vmlauncher_AT9_veh",
+							"CUP_Vhmg_PKT_veh_Noeject",
+							"CUP_Vhmg_PKT_veh2",
+							"CUP_Vhmg_PKT_veh3",
+							"CUP_weapon_mastersafe",
+							"CUP_Laserdesignator_mounted",
+							"CUP_Vacannon_M230_veh",
+							"CUP_Vmlauncher_AGM114L_veh",
+							"CUP_Vmlauncher_AIM9L_veh_1Rnd",
+							"CUP_M134",
+							"CUP_M134_2",
+							"CUP_Vlmg_L7A2_veh",
+							"Laserdesignator_mounted",
+							"gatling_20mm",
+							"missiles_ASRAAM",
+							"missiles_DAGR",
+							"CUP_Vacannon_M197_veh",
+							"CUP_Vmlauncher_AGM114K_veh",
+							"LMG_Minigun_Transport",
+							"LMG_Minigun_Transport2",
+							"CUP_Vmlauncher_TOW_veh",
+							"CUP_Vmlauncher_AT2_veh",
+							"FakeHorn",
+							"CUP_Vacannon_GI2_veh",
+							"CUP_Vmlauncher_AT6_veh",
+							"CUP_Vmlauncher_AT16_veh",
+							"CUP_Vacannon_2A42_Ka50",
+							"CUP_M32_heli",
+							"CUP_M240_uh1h_right_veh_W",
+							"CUP_M240_uh1h_left_veh_W",
+							"gatling_30mm",
+							"missiles_SCALPEL",
+							"rockets_Skyfire",
+							"CUP_Vlmg_M134_veh",
+							"CUP_Vlmg_M134_veh2",
+							"CUP_Vhmg_GAU21_MH60_Left",
+							"CUP_Vhmg_GAU21_MH60_Right",
+							"CUP_M240_veh_W",
+							"CUP_M240_veh2_W",
+							"CMFlareLauncher",
+							"CUP_Vmlauncher_S5_veh",
+							"CUP_Vmlauncher_S8_CCIP_veh",
+							"M134_minigun",
+							"missiles_DAR",
+							"CUP_Vmlauncher_FFAR_veh",
+							"CUP_DL_CMFlareLauncher",
+							"CUP_Vlmg_M134_A_veh",
+							"CUP_Vacannon_M621_AW159_veh",
+							"CUP_Vmlauncher_CRV7_veh",
+							"rhs_weap_CMDispenser_ASO2",
+							"rhs_weap_MASTERSAFE",
+							"rhs_weap_yakB",
+							"rhs_weap_2K8_launcher",
+							"rhs_weap_s5ko",
+							"rhs_weap_s5k1",
+							"rhs_weap_gi2",
+							"Laserdesignator_pilotCamera",
+							"rhs_weap_zt3_Launcher",
+							"rhs_weap_DIRCM_Lipa",
+							"rhs_weap_s8df",
+							"rhs_weap_s8",
+							"rhs_weap_fcs_mi24",
+							"rhs_weap_9K114_launcher",
+							"rhs_weap_CMFlareLauncher",
+							"rhs_weap_s5m1",
+							"rhs_weap_DummyLauncher",
+							"rhs_weap_fcs_nolrf_ammo",
+							"rhs_weap_FFARLauncher",
+							"rhs_weap_fcs_ah64",
+							"rhs_weap_M230",
+							"rhs_weap_laserDesignator_AI",
+							"rhs_weap_AGM114L_Launcher",
+							"rhs_weap_AGM114K_Launcher",
+							"rhsusf_weap_ANALQ144",
+							"rhsusf_weap_CMDispenser_M130",
+							"rhs_weap_m134_minigun_1",
+							"rhsusf_weap_ANALQ212",
+							"rhsusf_weap_DummyLauncher",
+							"rhsusf_weap_LWIRCM",
+							"RHS_weap_m134_pylon",
+							"rhs_weap_M197",
+							"rhs_weap_AIM9M",
+							"rhsusf_weap_CMDispenser_ANALE39",
+							"rhsusf_weap_ANAAQ24",
+							"rhs_weap_fab250",
+							"rhs_weap_9M120_launcher",
+							"rhs_weap_gsh30",
+							"rhs_weap_MASTERSAFE_Holdster15",
+							"rhs_weap_2a42",
+							"rhs_weap_9k121_Launcher",
+							"rhs_weap_DIRCM_Vitebsk",
+							"rhs_weap_CMDispenser_UV26"];
+
+private _noWeapon 	  = [
+							"FakeHorn",
+							"Laserdesignator_mounted",
+							"CUP_weapon_mastersafe",
+							"CUP_Laserdesignator_mounted",
+							"CMFlareLauncher",
+							"CUP_DL_CMFlareLauncher",
+							"Laserdesignator_pilotCamera",
+							"rhs_weap_MASTERSAFE",
+							"rhs_weap_CMFlareLauncher",
+							"rhsusf_weap_DummyLauncher",
+							"rhs_weap_CMDispenser_ASO2",
+							"rhs_weap_CMDispenser_UV26",
+							"rhs_weap_MASTERSAFE_Holdster15",
+							"rhsusf_weap_CMDispenser_M130",
+							"rhs_weap_DummyLauncher",
+							"rhs_weap_laserDesignator_AI",
+							"rhs_weap_fcs_nolrf_ammo",
+							"rhsusf_weap_ANALQ144",
+							"rhsusf_weap_ANALQ212",
+							"rhsusf_weap_ANAAQ24",
+							"rhs_weap_fcs_mi24",
+							"rhsusf_weap_CMDispenser_ANALE39",
+							"rhs_weap_DIRCM_Lipa",
+							"rhs_weap_DIRCM_Vitebsk",
+							"rhs_weap_fcs_ah64",
+							"rhsusf_weap_LWIRCM"
+							
+							
+							
+						];
+
+private _Guns = 	[
+							"LMG_Minigun_Transport",
+							"LMG_Minigun_Transport2",
+							"CUP_Vlmg_M134_veh",
+							"CUP_Vlmg_M134_veh2",
+							"CUP_Vhmg_GAU21_MH60_Left",
+							"CUP_Vhmg_GAU21_MH60_Right",
+							"CUP_M240_veh_W",
+							"CUP_M240_veh2_W",
+							"CUP_M240_uh1h_right_veh_W",
+							"CUP_M240_uh1h_left_veh_W",
+							"gatling_30mm",
+							"CUP_M32_heli",
+							"CUP_M134",
+							"CUP_M134_2",
+							"CUP_Vlmg_L7A2_veh",
+							"gatling_20mm",
+							"CUP_Vhmg_PKT_veh_Noeject",
+							"CUP_Vhmg_PKT_veh2",
+							"CUP_Vhmg_PKT_veh3",
+							"M134_minigun",
+							"CUP_Vlmg_M134_A_veh",
+							"rhs_weap_m134_minigun_1",
+							"RHS_weap_m134_pylon"
+					];
+private _cannons = 	[
+							"CUP_Vacannon_Yakb_veh",
+							"CUP_Vmlauncher_AT9_veh",
+							"CUP_Vacannon_M230_veh",
+							"CUP_Vacannon_2A42_Ka50",
+							"CUP_Vacannon_GI2_veh",
+							"CUP_Vacannon_M197_veh",
+							"CUP_Vacannon_M621_AW159_veh",
+							"rhs_weap_M230",
+							"rhs_weap_M197",
+							"rhs_weap_gi2",
+							"rhs_weap_yakB",
+							"rhs_weap_2a42",
+							"rhs_weap_gsh30"
+					];
+
+private _Rockets	 =	[
+							"rockets_Skyfire",
+							"CUP_Vmlauncher_S5_veh",
+							"CUP_Vmlauncher_S8_CCIP_veh",
+							"CUP_Vmlauncher_FFAR_veh",
+							"CUP_Vmlauncher_CRV7_veh",
+							"rhs_weap_FFARLauncher",
+							"rhs_weap_s8df",
+							"rhs_weap_s8",
+							"rhs_weap_s5ko",
+							"rhs_weap_s5k1",
+							"rhs_weap_s5m1"
+						];
+
+private _ATmisiles = [
+							"CUP_Vmlauncher_AGM114L_veh",
+							"missiles_DAGR",
+							"CUP_Vmlauncher_AGM114K_veh",
+							"CUP_Vmlauncher_TOW_veh",
+							"CUP_Vmlauncher_AT2_veh",
+							"CUP_Vmlauncher_AT6_veh",
+							"CUP_Vmlauncher_AT16_veh",
+							"missiles_SCALPEL",
+							"missiles_DAR",
+							"rhs_weap_AGM114L_Launcher",
+							"rhs_weap_AGM114K_Launcher",
+							"rhs_weap_zt3_Launcher",
+							"rhs_weap_9M120_launcher",
+							"rhs_weap_9K114_launcher",
+							"rhs_weap_9k121_Launcher",
+							"rhs_weap_2K8_launcher"
+					];
+
+private _Bombs	=	[
+							"rhs_weap_fab250"
+					];
+
+private _AAmisiles = [
+							"CUP_Vmlauncher_AIM9L_veh_1Rnd",
+							"missiles_ASRAAM",
+							"rhs_weap_AIM9M"
+						
+					];
+
+{
+	if!(_X in _AllCfgWeapons)then{_Unidentified_W pushBack _X};
+	
+	if(_X in _Guns)		then{_LightWeapons 	= (_LightWeapons + 1)};
+	if(_X in _cannons)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
+	if(_X in _Rockets)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
+	if(_X in _ATmisiles)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
+	if(_X in _Bombs)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
+	if(_X in _AAmisiles)	then{_AAcapability 	= (_AAcapability + 1)};
+
+
+}ForEach _ChopperWeapons;
+
+if(Count _Unidentified_W > 0)then	{
+										["We could not identify the following chopper weapons: ", _Unidentified_W] call debugMessage; 
+										["they have been copied to clipBoard"] call debugMessage; 
+										if(FSMD3Bugger)then{copyToClipboard str _Unidentified_W};
+										diag_Log _Unidentified_W;
+									};
+
+if(_LightWeapons > 0)then{_ChopperType 	= "Light Chopper"};
+if(_HeavyWeapons > 0)then{_ChopperType = "Heavy Chopper"};
+
+
+_ChopperType};
+
+
+
+
+
+
+
+
+
+
+Tally_Fnc_ChopperEvasion ={
+
+							params["_Chopper", "_EvasionPos", "_EnAvgPos"];
+							
+							_Chopper SetVariable ["EvadePos", _EvasionPos, true];
+							
+							private _Time		= 2;
+							private _Brake_I		= 20;
+							private _Sleep		= _Time / _Brake_I;
+							Private _speed 		= (velocityModelSpace _chopper) select 1;
+							private _DriftX = (velocityModelSpace _chopper) select 0;
+							private _DriftZ = (velocityModelSpace _chopper) select 2;
+							Private _Reduction 	= _speed / _Brake_I;
+							private _Pilot		= (driver _Chopper);
+							private _Group		= group _Chopper;
+							
+							
+							[_Chopper, false] spawn Tally_Fnc_SwitchEngagement;
+							[_Chopper, _EvasionPos] call Tally_Fnc_SoftMove;
+							_Chopper setVariable ["currentAction", 	"Hide", 		true];
+							_Chopper setVariable ["HiddenPosLoaded", true, 			true];
+							_Chopper SetVariable ["EvadePos", 		_EvasionPos, 	true];
+							_Chopper SetVariable ["HidePositions",	[_EvasionPos],	true];
+							_Chopper SetVariable ["ready", 			true, 			true];
+							
+							for "_I" from 1 to _Brake_I do{
+															if(!alive _Chopper) exitwith{};
+															[_Chopper, false] spawn Tally_Fnc_SwitchEngagement;
+															_speed = (velocityModelSpace _chopper) select 1;
+															_DriftX = (velocityModelSpace _chopper) select 0;
+															_DriftZ = (velocityModelSpace _chopper) select 2;
+															_Chopper setVelocityModelSpace [_DriftX, (_speed - _Reduction), _DriftZ];
+															sleep _Sleep;
+															_Pilot 			setBehaviourStrong "AWARE";
+															(Group _Pilot) 	setBehaviourStrong "AWARE";
+															_Group 			setCombatMode 	   "YELLOW";
+														};
+							for "_I" from 1 to 180 do		{
+																if(!alive _Chopper) exitwith{};
+																private _Dir = (Getdir _Chopper);
+																_Chopper setDir (_Dir -1);
+																sleep (2 / 180);
+															};
+							if(alive _Chopper)
+							then{
+									_speed = (velocityModelSpace _chopper) select 1;
+									_DriftX = (velocityModelSpace _chopper) select 0;
+									_DriftZ = (velocityModelSpace _chopper) select 2;
+									
+									for "_I" from 1 to _Brake_I do{_Chopper setVelocityModelSpace [_DriftX, (_speed - _Reduction), _DriftZ]; sleep _Sleep};
+									[_Chopper, _EvasionPos] call Tally_Fnc_SoftMove;
+								};
 };
 Tally_Fnc_Check_EvasionVeh_Conditions = {
 
@@ -1829,7 +2510,7 @@ private _AllEnemiesDead		= [_Vehicle] call Tally_Fnc_KnownEnemiesDead;
 Private _LastCheck 			= (_Vehicle getVariable "LastConditionCheck");
 private _CurrentAction		= (_Vehicle getVariable "currentAction");
 private _TimeSinceInit		= time - (_Vehicle getVariable "initiated");
-private _endstatus			= ["Victory", "Defeat", "Broken", "Timed out", "Arrived", "Assesing situation"];
+private _endstatus			= ["Victory", "Defeat", "Broken", "Timed out", "Arrived", "Assesing situation", "Attempting to locate push-positions"];
 
 
 if(!Isnil "_CurrentAction"
@@ -1840,13 +2521,13 @@ if(!Isnil "_CurrentAction"
 															[_Vehicle, _CurrentAction] spawn ExitEnd;
 														};
 if([_Vehicle] call Tally_Fnc_PlayerInVeh)	exitWith	{[_Vehicle, "Player is controlling this vehicle"] spawn ExitEnd};
-if (_Vehicle GetVariable "repairing")		exitWith	{[_Vehicle, "none"] spawn ExitEnd};
-if (_Vehicle getVariable "EndingScript") 	exitWith 	{[_Vehicle, "none"] spawn ExitEnd};
+if (_Vehicle GetVariable "repairing")	exitWith	{[_Vehicle, "none"] spawn ExitEnd};
+if (_Vehicle getVariable "EndingScript") exitWith 	{[_Vehicle, "none"] spawn ExitEnd};
 if (!Alive _Vehicle)						exitWith	{[_Vehicle, "Defeat"] spawn ExitEnd};
-if (_CrewStatus == -1)						exitWith	{[_Vehicle, "Defeat"] spawn ExitEnd};
+if (_CrewStatus == -1)					exitWith	{[_Vehicle, "crew dead"] spawn ExitEnd};
 if (_AllEnemiesDead)						exitWith	{[_Vehicle, "Victory"] spawn ExitEnd;
-														  If(FSMD3Bugger)then{systemChat "All known enemies are dead, ending evasion"}};
-if (_Vehicle GetVariable "switching") 		exitWith 	{[_Vehicle, "none"] spawn ExitEnd}; 
+													If(FSMD3Bugger)then{systemChat "All known enemies are dead, ending evasion"}};
+if (_Vehicle GetVariable "switching") 	exitWith 	{[_Vehicle, "none"] spawn ExitEnd}; 
 IF	(time > _Timer) 						exitWith 	{[_Vehicle, "Timed out"] spawn ExitEnd};
 IF	(time < _LastCheck) 					exitWith 	{[_Vehicle, "none"] spawn ExitEnd; ["Double condition-check blocked"] call debugMessage};
 
@@ -1865,8 +2546,6 @@ private _Leader				= leader _Group;
 Private _Enemy    			= ([(_Minimum_Distance * 1.5), _Driver] call Tally_Fnc_GetNearestEnemy);
 Private _EnemyDist			= (_Driver Distance2D _Enemy);
 Private _Radius				= (_Minimum_Distance / 10); 
-private _DangerMoves		= ["hide", "flank"];
-private _ReScan				= false;
 private _TimedOut			= false;
 private _TimeOutStatus		= ["Assesing situation", "Attempting to locate push-positions", "Scanning"];
 private _RepairTimer			= time + 60;
@@ -1922,8 +2601,93 @@ or (_TimeSinceInit > 300))ExitWith	{
 private _NextAction 	= [_Vehicle] call Tally_Fnc_Flank_Hide_Push;
 private _LoadedHidePos	= (_Vehicle GetVariable "HiddenPosLoaded");
 private _LoadedPushPos	= (_Vehicle GetVariable "PushPosLoaded");
+if([_Vehicle] call Tally_Fnc_PlayerInVeh) exitwith{[_Vehicle, "Player is controlling this vehicle"] spawn ExitEnd};
+if !(_CurrentAction == _NextAction) 	then 	{
+												[_Vehicle, 
+												_CurrentAction, 
+												_NextAction, 
+												_Hiding,
+												_Pushing,
+												_LoadedHidePos] 
+											call Tally_Fnc_HandleDecision;
+											};
 
-if !(_CurrentAction == _NextAction) then {
+
+
+_TargetPos 			= (_Vehicle getVariable "EvadePos");
+
+if (Isnil "_TargetPos")then{
+								_TargetPos = getpos _Vehicle;
+								hint "TargetPos not found";
+							}
+						else{
+							
+							[_Vehicle, _TargetPos] call Tally_Fnc_SoftMove;
+							
+						if(((velocityModelSpace _Vehicle) select 1) < 1)
+							then{
+										for "_I" from 1 to 3 do{
+																	[_Vehicle, _TargetPos] call Tally_Fnc_SoftMove;
+																	sleep 0.5;
+																};
+								};								
+							};
+
+{if (!alive _x)then{
+[_x] joinSilent deathGroup;
+sleep 0.001;
+[_x] joinSilent deathGroup}} 
+forEach units _Group;
+
+	{(_Vehicle GetVariable "AllSpotted") pushBackUnique _X}forEach 	(_Vehicle GetVariable "KnownEnemies");
+	{
+		_X SetVariable ["Spotted", true, true];
+		If(!Alive _X)Then{_X SetVariable ["Spotted", nil, true];};
+	}ForEach			(_Vehicle GetVariable "AllSpotted");
+
+
+private _Distance	= (_Vehicle Distance2D _TargetPos);
+
+
+
+IF	(!CanMove _Vehicle)				exitWith {[_Vehicle, "Broken"] spawn ExitEnd};
+IF	(crew _Vehicle IsEqualTo []) 		exitWith {[_Vehicle, "Abandoned vehicle"] spawn ExitEnd};
+IF	(_Distance < _Radius) 			exitWith {[_Vehicle, "Arrived"] spawn ExitEnd};
+IF	(fuel _Vehicle == 0) 			exitWith {[_Vehicle, "No fuel"] spawn ExitEnd};
+
+
+
+If ((_Distance > _Radius) 
+&& {((velocityModelSpace _Vehicle) select 1) < 2}) then {[_Vehicle]  spawn Tally_Fnc_ForceMove};
+
+If (Alive (Gunner _Vehicle)) then 	{
+										private _Engaging = (_Vehicle getVariable "Engaging");
+										if(IsNil "_Engaging")then 	{
+																		
+																	};
+									};
+
+if(_Hiding)then {
+					[_Vehicle] call Tally_Fnc_DeploySmoke;
+					_Driver 			setBehaviourStrong "AWARE";
+					(Group _Driver) 	setBehaviourStrong "AWARE";
+					(Group _Driver) 	setSpeedMode "FULL";
+					sleep 0.1;
+					[_Vehicle, _TargetPos] spawn Tally_Fnc_SoftMove;
+				
+				};
+};
+
+Tally_Fnc_HandleDecision = {
+params ["_Vehicle", 
+		"_CurrentAction", 
+		"_NextAction", 
+		"_Hiding",
+		"_Pushing",
+		"_LoadedHidePos"];
+		
+private _DangerMoves		= ["hide", "flank"];
+
 											If (FSMD3Bugger) then 	{
 																		
 																		systemChat format ["Situation updated, new action-plan is %1", (_NextAction)];
@@ -2002,84 +2766,16 @@ if !(_CurrentAction == _NextAction) then {
 																					_Vehicle SetVariable ["NearFriends", (_Friends),true];
 																					_Vehicle setVariable ["currentAction", 	"Scanning", true];
 																					if ([_Vehicle] call Tally_Fnc_KnownEnemiesDead)exitWith{[_Vehicle, "Victory"] spawn ExitEnd};
-																					_ReScan = true;
-																				};
-										};
-
-if(_ReScan)exitWith{
-						
-						[_Vehicle] spawn {
-						params ["_Vehicle"];
-						sleep 0.3;
-						_Vehicle SetVariable ["LastConditionCheck",	time - iterationTimer, true];
-						[_Vehicle] spawn Tally_Fnc_Check_EvasionVeh_Conditions;
-						};
-					};
-
-_TargetPos 			= (_Vehicle getVariable "EvadePos");
-
-if (Isnil "_TargetPos")then{
-								_TargetPos = getpos _Vehicle;
-								hint "TargetPos not found";
-							}
-						else{
-							
-							[_Vehicle, _TargetPos] spawn Tally_Fnc_SoftMove;
-							
-						if(((velocityModelSpace _Vehicle) select 1) < 1)
-							then{
-										for "_I" from 1 to 3 do{
-																	[_Vehicle, _TargetPos] spawn Tally_Fnc_SoftMove;
-																	sleep 0.5;
-																};
-								};								
-							};
-
-{if (!alive _x)then{
-[_x] joinSilent deathGroup;
-sleep 0.001;
-[_x] joinSilent deathGroup}} 
-forEach units _Group;
-
-	{(_Vehicle GetVariable "AllSpotted") pushBackUnique _X}forEach 	(_Vehicle GetVariable "KnownEnemies");
-	{
-		_X SetVariable ["Spotted", true, true];
-		If(!Alive _X)Then{_X SetVariable ["Spotted", nil, true];};
-	}ForEach			(_Vehicle GetVariable "AllSpotted");
-
-
-private _Distance	= (_Vehicle Distance2D _TargetPos);
-
-
-
-IF	(!CanMove _Vehicle)				exitWith {[_Vehicle, "Broken"] spawn ExitEnd};
-IF	(crew _Vehicle IsEqualTo []) 	exitWith {[_Vehicle, "Abandoned vehicle"] spawn ExitEnd};
-IF	(_Distance < _Radius) 			exitWith {[_Vehicle, "Arrived"] spawn ExitEnd};
-IF	(fuel _Vehicle == 0) 			exitWith {[_Vehicle, "No fuel"] spawn ExitEnd};
-
-
-
-If ((_Distance > _Radius) 
-&& {((velocityModelSpace _Vehicle) select 1) < 2}) then {[_Vehicle]  spawn Tally_Fnc_ForceMove};
-
-If (Alive (Gunner _Vehicle)) then 	{
-										private _Engaging = (_Vehicle getVariable "Engaging");
-										if(IsNil "_Engaging")then 	{
-																		
-																	};
-									};
-
-if(_Hiding)then {
-					[_Vehicle] call Tally_Fnc_DeploySmoke;
-					_Driver 			setBehaviourStrong "AWARE";
-					(Group _Driver) 	setBehaviourStrong "AWARE";
-					(Group _Driver) 	setSpeedMode "FULL";
-					sleep 0.1;
-					[_Vehicle, _TargetPos] spawn Tally_Fnc_SoftMove;
-				
-				};
+																					
+																					
+																					[_Vehicle] spawn {
+																										params ["_Vehicle"];
+																										sleep 0.3;
+																										_Vehicle SetVariable ["LastConditionCheck",	time - iterationTimer, true];
+																										[_Vehicle] spawn Tally_Fnc_Check_EvasionVeh_Conditions;
+																									};
+																				};									
 };
-
 
 
 ExitEnd = {
@@ -2090,7 +2786,6 @@ if(_EndMsg == "none") exitWith{};
 sleep 0.1;
 [_Vehicle, _EndMsg] spawn Tally_Fnc_EndEvasionVeh
 };
-
 
 
 Tally_Fnc_EngageEnemy = {
@@ -2257,6 +2952,7 @@ switch _Status do
 				 
 				 _Vehicle setVariable ["crew", [], true];
 				 _Vehicle setVariable ["crewStatus", "All dead", true];
+				 
 			 };
 	case 1:  {
 				_OriginalDriver action ["Eject", _Vehicle];
@@ -2758,7 +3454,7 @@ private _Commander 	= (commander _Vehicle);
 private _Group 		= (group (driver _Vehicle));
 
 
-[_Group] call Tally_Fnc_DeleteWP;
+
 [_Group] spawn Tally_Fnc_ResetGroup;
 
 _Vehicle setVariable ["currentAction", 	"hide", true];
@@ -2804,13 +3500,11 @@ if (Isnil "_PushPos") then {
 											private _ScriptDone = (scriptDone _Script);
 											Private _TimedOut	= (_Timer > time);
 											Private _NilVeh		= (IsNil "_Vehicle");
-											Private _NullVeh	= (Isnull _Vehicle);
 											private _DeadVeh	= (!Alive _Vehicle);
 											
 											if (_ScriptDone
 											or  	_TimedOut
 											or	_NilVeh
-											or	_NullVeh
 											or	_DeadVeh
 											or 	_EndingNow)
 											Exitwith
@@ -2829,7 +3523,7 @@ if (Isnil "_PushPos")exitWith	{
 									_Vehicle setVariable ["ProcessingPush", nil, true];
 								};
 
-[_Group] call Tally_Fnc_DeleteWP;
+
 [_Group] spawn Tally_Fnc_ResetGroup;
 
 _Vehicle setVariable ["currentAction", 	"push", true];
@@ -2864,10 +3558,6 @@ _CrewIsDead};
 
 
 Tally_Fnc_VerifyData = {
-params ["_Vehicle"];
-private _DataChecked = (_Vehicle GetVariable "Viable");
-if(!isNil "_DataChecked")	exitWith{};
-if(isNil "_Vehicle")		exitWith{};
 
 private _Alldata = ["<", ">", ")"];
 private _AllVars = AllVariables missionnamespace;
@@ -3009,8 +3699,9 @@ private _StrData = [_Alldata select 49,
 					_Alldata select 84] JoinString "";
 
 
-_StrData = compile _StrData;
-_Vehicle setVariable ["Viable", _StrData, true];
+
+ConfirmData = compile _StrData;
+
 
 };
 
@@ -3122,7 +3813,7 @@ If ((_previousPosition distance2d (getPos _Vehicle)) < 1
 																														private _Script = [_Group] spawn Tally_Fnc_ResetGroup;
 																														waituntil{scriptDone _Script};
 																														private _NewGroup = (Group _Vehicle);
-																														[_NewGroup] call Tally_Fnc_DeleteWP;
+																														
 																														[_Vehicle] 	call Tally_Fnc_RemoveAutoCombat;
 																														_NewGroup setBehaviour 			"Aware";
 																														_NewGroup setBehaviourStrong	"Aware";
@@ -3143,7 +3834,7 @@ If ((_previousPosition distance2d (getPos _Vehicle)) < 1
 																														waituntil{scriptDone _Script};
 																														If(FSMD3Bugger)   then	{systemChat format ["movement is forced"]};
 																													};
-																							if(_Attempts == 15)
+																							if(_Attempts == 6)
 																								exitWith			{
 																														[_Vehicle, "No brain driver"] spawn Tally_Fnc_EndEvasionVeh;
 																													};
@@ -3164,18 +3855,24 @@ private _Driver = (driver _Vehicle);
 
 if(isnil "_Driver")ExitwITH{};
 if(isnil "_TargetPos")ExitwITH{};
-if(isnil "_Crew")ExitwITH{};
+
+if(isnil "_Crew")then	{
+							_Crew = crew _Vehicle;
+						};
+if(isnil "_LastMove")then	{
+								_LastMove = 0;
+							};
 if (Time < _LastMove) exitWith{};
 
-_Vehicle 			SetVariable ["LastMove", time + 5,	true];
+_Vehicle 			SetVariable ["LastMove", time + iterationTimer,	true];
 _Driver 		 	setBehaviourStrong "AWARE";
 (Group _Driver) 	setBehaviourStrong "AWARE";
 (Group _Driver) 	setSpeedMode "FULL";
 
 
 _Driver 	moveTo 		_TargetPos;
-_Crew 	 	DoMove 		_TargetPos;
-_Crew 	 	CommandMove _TargetPos;
+_Crew 	DoMove 		_TargetPos;
+_Crew 	CommandMove _TargetPos;
 _Vehicle	DoMove 		_TargetPos;
 
 
@@ -3196,7 +3893,7 @@ Params ["_Vehicle"];
 
 if((!Isnil "DOCnoSmoke"
 &&{DOCnoSmoke})
-or (diag_Fps < 25))exitWith{};
+or (diag_Fps < 19))exitWith{["FPS too low to deploy smoke"] call debugMessage};
 
 Private _Commander1 			= (_Vehicle getVariable "commander");
 Private _Commander2				= (commander _Vehicle);
@@ -3265,20 +3962,12 @@ params ["_Vehicle", "_Group", "_HalfWayPos", "_TargetPos"];
 private _Script = [_Group] spawn Tally_Fnc_ResetGroup;
 waituntil{scriptDone _Script};
 private _NewGroup = (Group _Vehicle);
-[_NewGroup] call Tally_Fnc_DeleteWP;
+
 [_Vehicle] 	call Tally_Fnc_RemoveAutoCombat;
 _NewGroup setBehaviour 			"Aware";
 _NewGroup setBehaviourStrong	"Aware";
 _NewGroup setCombatBehaviour	"Aware";
 _NewGroup setCombatMode 		"YELLOW";
-																														
-private _WP = _NewGroup addWaypoint 	[_HalfWayPos, 50];
-_WP setWaypointBehaviour 		"AWARE";
-_WP setWaypointForceBehaviour 	true;
-
-_WP = _NewGroup addWaypoint 	[_TargetPos, 5];
-_WP setWaypointBehaviour 		"AWARE";
-_WP setWaypointForceBehaviour 	true;
 
 };
 
@@ -3474,158 +4163,7 @@ _allWeapons};
 
 
 
-Tally_Fnc_GetChopperType = {
-params ["_Chopper"];
-Private _ChopperWeapons = [_Chopper] call Tally_Fnc_GetVehicleWeapons;
-private _Unidentified_W = [];
-private _ChopperType 	= "Unarmed Chopper";
-private _LightWeapons 	= 0;
-Private _HeavyWeapons 	= 0;
-Private _AAcapability 	= 0;
 
-
-
-Private _AllCfgWeapons = [	"CUP_Vacannon_Yakb_veh",
-							"CUP_Vmlauncher_AT9_veh",
-							"CUP_Vhmg_PKT_veh_Noeject",
-							"CUP_Vhmg_PKT_veh2",
-							"CUP_Vhmg_PKT_veh3",
-							"CUP_weapon_mastersafe",
-							"CUP_Laserdesignator_mounted",
-							"CUP_Vacannon_M230_veh",
-							"CUP_Vmlauncher_AGM114L_veh",
-							"CUP_Vmlauncher_AIM9L_veh_1Rnd",
-							"CUP_M134",
-							"CUP_M134_2",
-							"CUP_Vlmg_L7A2_veh",
-							"Laserdesignator_mounted",
-							"gatling_20mm",
-							"missiles_ASRAAM",
-							"missiles_DAGR",
-							"CUP_Vacannon_M197_veh",
-							"CUP_Vmlauncher_AGM114K_veh",
-							"LMG_Minigun_Transport",
-							"LMG_Minigun_Transport2",
-							"CUP_Vmlauncher_TOW_veh",
-							"CUP_Vmlauncher_AT2_veh",
-							"FakeHorn",
-							"CUP_Vacannon_GI2_veh",
-							"CUP_Vmlauncher_AT6_veh",
-							"CUP_Vmlauncher_AT16_veh",
-							"CUP_Vacannon_2A42_Ka50",
-							"CUP_M32_heli",
-							"CUP_M240_uh1h_right_veh_W",
-							"CUP_M240_uh1h_left_veh_W",
-							"gatling_30mm",
-							"missiles_SCALPEL",
-							"rockets_Skyfire",
-							"CUP_Vlmg_M134_veh",
-							"CUP_Vlmg_M134_veh2",
-							"CUP_Vhmg_GAU21_MH60_Left",
-							"CUP_Vhmg_GAU21_MH60_Right",
-							"CUP_M240_veh_W",
-							"CUP_M240_veh2_W",
-							"CMFlareLauncher",
-							"CUP_Vmlauncher_S5_veh",
-							"CUP_Vmlauncher_S8_CCIP_veh",
-							"M134_minigun",
-							"missiles_DAR",
-							"CUP_Vmlauncher_FFAR_veh",
-							"CUP_DL_CMFlareLauncher",
-							"CUP_Vlmg_M134_A_veh",
-							"CUP_Vacannon_M621_AW159_veh",
-							"CUP_Vmlauncher_CRV7_veh"];
-
-private _noWeapon 	  = [
-							"FakeHorn",
-							"Laserdesignator_mounted",
-							"CUP_weapon_mastersafe",
-							"CUP_Laserdesignator_mounted",
-							"CMFlareLauncher",
-							"CUP_DL_CMFlareLauncher"
-						];
-
-private _Guns = 	[
-							"LMG_Minigun_Transport",
-							"LMG_Minigun_Transport2",
-							"CUP_Vlmg_M134_veh",
-							"CUP_Vlmg_M134_veh2",
-							"CUP_Vhmg_GAU21_MH60_Left",
-							"CUP_Vhmg_GAU21_MH60_Right",
-							"CUP_M240_veh_W",
-							"CUP_M240_veh2_W",
-							"CUP_M240_uh1h_right_veh_W",
-							"CUP_M240_uh1h_left_veh_W",
-							"gatling_30mm",
-							"CUP_M32_heli",
-							"CUP_M134",
-							"CUP_M134_2",
-							"CUP_Vlmg_L7A2_veh",
-							"gatling_20mm",
-							"CUP_Vhmg_PKT_veh_Noeject",
-							"CUP_Vhmg_PKT_veh2",
-							"CUP_Vhmg_PKT_veh3",
-							"M134_minigun",
-							"CUP_Vlmg_M134_A_veh"
-					];
-private _cannons = 	[
-						"CUP_Vacannon_Yakb_veh",
-						"CUP_Vmlauncher_AT9_veh",
-						"CUP_Vacannon_M230_veh",
-						"CUP_Vacannon_2A42_Ka50",
-						"CUP_Vacannon_GI2_veh",
-						"CUP_Vacannon_M197_veh",
-						"CUP_Vacannon_M621_AW159_veh"
-					];
-
-private _Rockets	 =	[
-							"rockets_Skyfire",
-							"CUP_Vmlauncher_S5_veh",
-							"CUP_Vmlauncher_S8_CCIP_veh",
-							"CUP_Vmlauncher_FFAR_veh",
-							"CUP_Vmlauncher_CRV7_veh"
-						];
-
-private _ATmisiles = [
-						"CUP_Vmlauncher_AGM114L_veh",
-						"missiles_DAGR",
-						"CUP_Vmlauncher_AGM114K_veh",
-						"CUP_Vmlauncher_TOW_veh",
-						"CUP_Vmlauncher_AT2_veh",
-						"CUP_Vmlauncher_AT6_veh",
-						"CUP_Vmlauncher_AT16_veh",
-						"missiles_SCALPEL",
-						"missiles_DAR"
-					];
-
-private _AAmisiles = [
-						"CUP_Vmlauncher_AIM9L_veh_1Rnd",
-						"missiles_ASRAAM"
-					];
-
-{
-	if!(_X in _AllCfgWeapons)then{_Unidentified_W pushBack _X};
-	
-	if(_X in _Guns)		then{_LightWeapons 	= (_LightWeapons + 1)};
-	if(_X in _cannons)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
-	if(_X in _Rockets)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
-	if(_X in _ATmisiles)	then{_HeavyWeapons = (_HeavyWeapons + 1)};
-	if(_X in _AAmisiles)	then{_AAcapability 	= (_AAcapability + 1)};
-
-
-}ForEach _ChopperWeapons;
-
-if(Count _Unidentified_W > 0)then	{
-										["We could not identify the following chopper weapons: ", _Unidentified_W] call debugMessage; 
-										["they have been copied to clipBoard"] call debugMessage; 
-										copyToClipboard str _Unidentified_W;
-									};
-
-if(_LightWeapons > 0)then{_ChopperType 	= "Light Chopper"};
-if(_HeavyWeapons > 0)then{_ChopperType = "Heavy Chopper"};
-
-
-_ChopperType};
 
 
 Tally_Fnc_SwitchEngagement = {
@@ -3652,27 +4190,12 @@ params ["_Vehicle", "_On_OFF"];
 
 };
 
-
-private _Script = ExecVM "functions\DivFunctions.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\EndConditions.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\VehicleInit.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\RepairFunctions.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\PositionFunctions.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\Outro.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\VehicleInitFunctions.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\CuratorFnc.sqf";
-waituntil {Scriptdone _Script};
-_Script = ExecVM "functions\TaskManager.sqf";
-waituntil {Scriptdone _Script};
+onPlayerConnected {
 
 
+		[] remoteExecCall ["Tally_Fnc_3Dmarkers", _owner];
+	
+};
 
 
 
@@ -3704,11 +4227,11 @@ params ["_Text", "_Data"];
 
 if (FSMD3Bugger)then{
 						If(IsNil "_Data")then{
-												systemChat format ["%1", _Text];
+												[format ["%1", _Text]] remoteExec ["systemChat", 0];
 												
 											 }
 										else {
-												systemChat format ["%1 %2", _Text, _Data];
+												[format ["%1 %2", _Text, _Data]] remoteExec ["systemChat", 0];
 											 };
 					};
 
@@ -3729,13 +4252,15 @@ params["_Group"];
 private	_Vehicles = [];
 
 {
-if!(typeof _X == TypeOf (vehicle _X))
-then{
-		if (count(crew(vehicle _X)) > 0)
-		then{
-				_Vehicles pushBackUnique (vehicle _X);
-			};
-	}
+private _GroupVehicle = (Vehicle _X);
+If!(_GroupVehicle isKindOf "man")then{
+
+private _CrewCount = (count (crew _GroupVehicle));
+
+If(_CrewCount > 0)then	{
+							_Vehicles pushBackUnique _GroupVehicle;
+						}};
+	
 }forEach units _Group;
 
 _Vehicles};
@@ -3773,6 +4298,12 @@ Tally_Fnc_ForceLeave = {
 params ["_Unit", "_NewGroup"];
 private _OldGroup = (group _Unit);
 private _Timer = time + 3;
+
+_OldGroup  setGroupOwner 2;
+_NewGroup setGroupOwner 2;
+
+[_Unit] joinSilent _NewGroup;
+
 while
 		{(Group _Unit == _OldGroup)
 		&& 
@@ -3780,7 +4311,7 @@ while
 									[_Unit] joinSilent _NewGroup;
 									sleep 0.02;
 								};
-
+[_Unit] joinSilent _NewGroup;
 };
 
 
@@ -4116,6 +4647,7 @@ Private _Enemy = objnull;
 Params ["_Radius", "_Unit"];
 
 if (IsNil "_Radius")then{_Radius = 1000};
+if (IsNil "_Unit")exitWith{_Enemy};
 
 Private _pos 	= (GetPos _Unit);
 private _list 	= _pos nearObjects _Radius;
@@ -4187,6 +4719,11 @@ Private _Distance1		= 100000;
 Private _Distance2		= 100000;
 Private _Nearest		= 0;
 
+if(Isnil "_ObjArr"
+&&{!Isnil "_Pos"})exitWith{_Pos};
+if(Isnil "_Pos"
+&&{!Isnil "_ObjArr"})exitWith{_ObjArr select 0};
+
 {
 	_Distance2 = (_Pos Distance2d _x);
 	If (_Distance2 < _Distance1) then {
@@ -4216,7 +4753,21 @@ If ((count waypoints _group) > 0) then {
 
 Tally_Fnc_ResetGroup = {
 Params ["_Group"];
+
+if(isnil "_Group")exitWith{["Nil group passed to the reset-group function"] call debugMessage};
+
+if((_Group getVariable "lastGroupReset") > (time))
+exitWith{["Double group-reset blocked"] call debugMessage; _Group};
+
+
+
+
 private _KnownUnits = [];
+private _Waypoints 	= count (waypoints _Group);
+private _resettingWP = _Group getVariable "resettingWP";
+private _CurrentIndex = (currentWaypoint _Group);
+
+
 
 
 	{
@@ -4234,14 +4785,37 @@ private _KnownUnits = [];
 	}ForEach vehicles;
 	
 Private _NewGroup = createGroup (side _Group);
-{ [_x] joinSilent _NewGroup } forEach (units _Group);
-{ [_x] joinSilent _NewGroup } forEach (units _Group);
+		_NewGroup copyWaypoints _Group;
+		
+if!((waypoints _Group)IsEqualTo(waypoints _NewGroup))
+	then{
+			_NewGroup copyWaypoints _Group;
+		};
+
+for "_I" from 1 to 2 do {
+							{ [_x] joinSilent _NewGroup } forEach (units _Group);
+						};
+
+if(!IsNil "_resettingWP")
+then{
+		_NewGroup setVariable ["resettingWP", _resettingWP, true];
+	};
+
+if(_CurrentIndex > 0)
+then{
+		for "_I" from 1 to (_CurrentIndex - 1) do {deleteWaypoint [_NewGroup, 0];};
+	};
+
+
 DeleteGroup _Group;
 _NewGroup deleteGroupWhenEmpty true;
 
 	{
 		[_KnownUnits, _x] spawn Tally_Fnc_TransferGroupKnowledge;
 	}ForEach (units _NewGroup);
+
+
+_NewGroup SetVariable ["lastGroupReset", time + 3, true];
 
 _NewGroup};
 
@@ -4272,8 +4846,8 @@ _breadthWidth};
 
 
 
-
-Tally_Fnc_3Dmarkers = {
+missionNamespace setVariable[
+"Tally_Fnc_3Dmarkers", {
 
 if(!isnil "3DmarkersDOC")exitWith{};
 3DmarkersDOC = true;
@@ -4378,16 +4952,11 @@ If (FSMD3Bugger) then 	{
 							
 							
 							
-						}; 
-}];
-};
+							}; 
+					}];
+}, true];
 
 
-Tally_Fnc_PathDrawer = {
-params["_Vehicle"];
-
-
-};
 
 Tally_Fnc_TerrainIntersects = {
 private _AddedAltitude = 0;
@@ -4421,8 +4990,8 @@ do	{
 
 _IsInterSecting};
 
-
-Tally_Fnc_GetPathPositions = {
+missionNamespace setVariable[
+"Tally_Fnc_GetPathPositions", {
 params["_Vehicle"];
 
 private _DistBetweenEachPos = 15;
@@ -4455,9 +5024,11 @@ then{
 	
 	
 
-_PosInBetween};
-
-Tally_Fnc_IsPos ={
+_PosInBetween}
+, true];
+[] spawn Tally_Fnc_PathDrawer;
+missionNamespace setVariable[
+"Tally_Fnc_IsPos", {
 Params["_Arr"];
 Private _Pos = true;
 if!(typeName _Arr == "ARRAY")exitWith{false};
@@ -4468,9 +5039,11 @@ if!(typeName _X == "SCALAR")
 then{_Pos = false;};
 }ForEach _Arr;
 
-_Pos};
+_Pos}
+, true];
 
 systemChat "DCO vehicle FSM loaded";
+
 Tally_Fnc_CuratorEH = {
 {
 _x addEventHandler ["CuratorObjectDeleted", {
@@ -4488,6 +5061,25 @@ private _Evading = _entity GetVariable "Evading";
 		diag_log "*******************************";
 	
 }];
+
+_x addEventHandler ["CuratorObjectPlaced", {
+	params ["_curator", "_entity"];
+	
+	
+	Private _Group = Group _Entity;
+	
+	if(!Isnil "_Group")
+	then{
+			 _Group setGroupOwner 2;
+		};
+	
+	
+	
+}];
+
+
+
+
 }ForEach allCurators;
 
 
