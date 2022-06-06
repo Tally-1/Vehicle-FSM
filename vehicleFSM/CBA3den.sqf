@@ -71,7 +71,7 @@
 	[
 		[0, 1, 2], 
 		["No quick reaction", "Move out only", "Face enemy, supressive fire then move."], 
-		1
+		0
 	]
 ] call cba_settings_fnc_init;
 
@@ -96,7 +96,7 @@
 	"CHECKBOX",
 	["Disable group reset", "Stops groups from reseting when in contact. Disable this option if you experience trouble with other ai-mods (will in some cases make vehicles less responsive)"],
 	"DCO Vehicle FSM",
-	false
+	true
 ] call cba_settings_fnc_init;
 
 [
