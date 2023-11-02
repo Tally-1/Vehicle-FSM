@@ -1,4 +1,9 @@
 params ["_Vehicle"];
+private _unitScannerType = "";
+
+if(!isNil "objScan_fnc_vehicleType")
+then{_unitScannerType = [_Vehicle] call Tally_Fnc_unitScannerClassing;};
+
 /*Author: _David#8349 && Tally*/
 
 private _typeOfVehicle 	= "unknown";
@@ -341,14 +346,31 @@ if(_Vehicle isKindOf "helicopter")
 then{
 		_typeOfVehicle = [_Vehicle] call Tally_Fnc_GetChopperType;
 	};
-
-
 }}}}}}};
 
+
+
+
+
 If(_typeOfVehicle == "unknown"
-&&{alive _Vehicle})then{
-							["Could not categorize vehicle", _CfgName] call Tally_fnc_debugMessage;
-							["For instructions on how to include mods contact the dev-team"] call Tally_fnc_debugMessage;
+&&{alive _Vehicle
+&&{_unitScannerType != ""}})then{
+							     ["Could not categorize vehicle", _CfgName] call Tally_fnc_debugMessage;
+							     ["Try installing DCO Unitscanner"] call Tally_fnc_debugMessage;
 						};
-					   
+
+If(_typeOfVehicle == "unknown"
+&&{_unitScannerType != ""
+&&{_unitScannerType != "unknown"}})
+then{_typeOfVehicle = _unitScannerType};
+
+if(_typeOfVehicle == "unknown"
+&&{_unitScannerType == "unknown"})
+then{
+		private _OBJscanType = [_vehicle] call ObjScan_fnc_VehicleType;
+		["DCO Unitscanner identified ",_CfgName," as ", _OBJscanType] call Tally_fnc_debugMessage;
+		["it was not categorized properly, tell Tally to look into it."] call Tally_fnc_debugMessage;
+
+};
+
 _typeOfVehicle

@@ -211,9 +211,9 @@ if(_QuickReaction)then{
 
 if(_vehicle IskindOf "HeliCopter")
 exitwith{
-			[_vehicle, 
-			_HidePos,
-			_EnAvgPos] spawn Tally_Fnc_ChopperEvasion;
+			// [_vehicle, 
+			// _HidePos,
+			// _EnAvgPos] spawn Tally_Fnc_ChopperEvasion;
 		};
 
 

@@ -36,7 +36,7 @@ private __neutralizeDir	= [_turnTo] call Tally_Fnc_getOpositeTurndir;
 _Vehicle sendSimpleCommand _turnTo;
 sleep 1;
 _isFacingTarget 	= [getDir _Vehicle, (_vehicle getDir _targetPos), 45] call Tally_Fnc_isFacingTargetDir;
-hint (parsetext format["turn %1<br/>is facing target = %2", _turnTo, ([getDir _Vehicle, (_vehicle getDir _targetPos)] call Tally_Fnc_isFacingTargetDir)]);
+// hint (parsetext format["turn %1<br/>is facing target = %2", _turnTo, ([getDir _Vehicle, (_vehicle getDir _targetPos)] call Tally_Fnc_isFacingTargetDir)]);
 	
 	
 	if(!(_isFacingTarget))then{

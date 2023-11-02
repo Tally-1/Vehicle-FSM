@@ -6,18 +6,20 @@ private _SelectedArea 	= ((_Vehicle GetVariable "Areas") select 0);
 private _SecondArea 	= ((_Vehicle GetVariable "Areas") select 1);
 private _ThirdArea 		= ((_Vehicle GetVariable "Areas") select 2);
 private _Timer			= time + 3;
-private _Nil				= false;
+private _Nil			= false;
 private _CopiedPos		= false;
 
-/*
-if (IsNil "_SelectedArea")exitWith	{
-										["Cannot get Hide-Positions because the search-area is not defined"] call Tally_fnc_debugMessage;
-									};*/
+
+
 
 If(_secondTry)
 then{
 		_Vehicle SetVariable ["TwoTimesHideSearch",	true, true];
 	};
+
+if (IsNil "_SelectedArea")exitWith	{
+										["Cannot get Hide-Positions because the search-area is not defined"] call Tally_fnc_debugMessage;
+									};
 
 If(!IsNil "_Initiator")
 then{
@@ -40,6 +42,7 @@ if(_InitDistance > 200) exitWith{};
 		private _FriendlyHidePositions = (_Initiator GetVariable "HidePositions");
 		
 		if(Isnil "_FriendlyHidePositions")exitWith{};
+		
 		
 		if(((count _FriendlyHidePositions) > 5)
 		&&{(_Initiator GetVariable "HiddenPosLoaded")})

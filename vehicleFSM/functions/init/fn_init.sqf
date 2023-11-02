@@ -35,7 +35,7 @@
 					
 					if (isNil "DCOnoSmoke")					then{DCOnoSmoke 				= false};
 					if (isNil "globalAgressionMultiplier")	then{globalAgressionMultiplier   	= 1};
-					if (isNil "DCOnoGroupReset")			then{DCOnoGroupReset			= false};
+					if (isNil "DCOnoGroupReset")			then{DCOnoGroupReset			= true};
 					
 					if (isNil "DCOnoHideGlobal")			then{DCOnoHideGlobal			= false};
 					if (isNil "DCOnoFlankGlobal")			then{DCOnoFlankGlobal			= false};

@@ -87,4 +87,4 @@ or  _x == _OriginalGunner)then{_thirdMan = _x};
 
 
 
-_returnValue
+_returnValue;

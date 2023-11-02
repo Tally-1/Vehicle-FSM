@@ -13,7 +13,7 @@ if (isNil "_Center")
 			_Center = getPos ([_Distance, (Driver _Vehicle)] call Tally_Fnc_GetNearestEnemy);
 			
 		};
-
+if (isNil "_Center") exitWith{diag_log "center is nil, fn_Ygrid.sqf"};
 					
 	for "_i" from 1 to _Final_Height do {
 	

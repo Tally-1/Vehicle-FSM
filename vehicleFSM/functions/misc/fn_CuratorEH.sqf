@@ -13,6 +13,7 @@ private _Evading = _entity GetVariable "Evading";
 					[_Text] remoteExec ["Hint", 0];
 				};
 		};
+
 		diag_log "*******************************";
 		diag_log "A vehicle was deleted while script was running  (DCO Vehicle FSM)";
 		diag_log "*******************************";
@@ -30,8 +31,22 @@ _x addEventHandler ["CuratorObjectPlaced", {
 	&&{!(_excluded)})
 	then{
 			_Group setGroupOwner 2;
-		};
-	
+		};	
 }];
 
+
+	_x addEventHandler ["CuratorObjectSelectionChanged", 
+{
+	params ["_curator", "_entity"];
+	if(FSMD3Bugger
+	&&{(!isNil "ObjScan_fnc_VehicleType")
+	&&{(! (_entity isKindOf "man"))
+	&&{alive _entity}}})
+	then{
+		 
+			private _description = [_entity] call ObjScan_fnc_VehicleType;
+			hint _description;
+		};
+		
+}];
 }ForEach allCurators;

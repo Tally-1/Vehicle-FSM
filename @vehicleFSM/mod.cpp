@@ -12,3 +12,4 @@
  hidePicture	= 0;	// Hide the extension menu
  dlcColor[] 	= {0.23,0.39,0.30,1}; // Color used for DLC stripes and backgrounds (RGBA)
  logoSmall 		= "DCO_icon.jpg"; // Display in creative lists, next to the entities added by the mod
+ loadingscreen  = "DCO_Pic.jpg";

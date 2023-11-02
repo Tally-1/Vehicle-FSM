@@ -13,7 +13,7 @@ private _NoHideVar	= (_Vehicle GetVariable "noHide");
 
 Private _NoPush		= ((!Isnil "_NoPushVar"  &&{_NoPushVar})
 					or (DCOnoPushGlobal));
-Private _Noflank		= ((!Isnil "_NoflankVar" &&{_NoflankVar})
+Private _Noflank	= ((!Isnil "_NoflankVar" &&{_NoflankVar})
 					or (DCOnoFlankGlobal));
 Private _NoHide		= ((!Isnil "_NoHideVar"  &&{_NoHideVar})
 					or (DCOnoHideGlobal));

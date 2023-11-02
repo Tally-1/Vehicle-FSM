@@ -33,11 +33,6 @@ private _finalSelection 	= [];
 		
 	}forEach 
 	_GridHash;
-/*
-hint ( parsetext format [
-							"1stSelection == %1<br/>2ndSelection == %2<br/>3rdSelection == %3<br/>"
-							, (count _1stSelection), (count _2ndSelection), (count _3rdSelection)]);
-*/
 
 if(count _1stSelection >= _MinPosAmount)exitWith{_1stSelection};
 

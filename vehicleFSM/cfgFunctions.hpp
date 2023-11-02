@@ -147,8 +147,10 @@ class CfgFunctions
 		
 		class VehicleClassing
 		{
-			class GetVehicleType	{file = "\vehicleFSM\functions\VehicleClassing\fn_GetVehicleType.sqf"};
-			class moddedVehicleType	{file = "\vehicleFSM\functions\VehicleClassing\fn_moddedVehicleType.sqf"};
+			file = "\vehicleFSM\functions\VehicleClassing";
+			class GetVehicleType	{};
+			class moddedVehicleType	{};
+			class unitScannerClassing {}
 		};
 
 		class Waypoints
