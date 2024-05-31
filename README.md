@@ -1,6 +1,6 @@
 # Vehicle-FSM
 
-Built by [P] Tally On behalf of Dragon Company.
+Built by Tally On behalf of Dragon Company.
 
 Show support by hopping into the DCO discord server and say hello!
 https://discord.gg/bRTqWJzeza
