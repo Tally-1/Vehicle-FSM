@@ -5,7 +5,7 @@ if((!Isnil "DCOnoSmoke"
 or (diag_Fps < 19))exitWith{["FPS too low to deploy smoke"] call Tally_fnc_debugMessage};
 
 Private _Commander1 			= (_Vehicle getVariable "commander");
-Private _Commander2			= (commander _Vehicle);
+Private _Commander2			    = (commander _Vehicle);
 Private _TimeSinceLastSmoke		= (time - (_Vehicle getVariable "LastSmoke"));
 Private _DistanceToLastSmoke 	= ((GetPos _Vehicle) distance2d (_Vehicle getVariable "LastSmokePos"));
 private _GroupVehicles 			= ([group (driver _Vehicle)] call Tally_Fnc_GetGroupVehicles);
@@ -42,25 +42,23 @@ If (Isnil "_Commander1"
 if((_TimeSinceLastSmoke > 120
 or _DistanceToLastSmoke > 100)
 &&{!(_SmokeNear)})then{
+	If (!Isnil "_Commander1")exitWith{
+	["attempting to deploy smoke"] call Tally_fnc_debugMessage;
+			
+	_Vehicle action ["UseWeapon", _Vehicle, _Commander1, 	5];
+	_Vehicle action ["UseWeapon", _Vehicle, _Commander1, 	0];
+	_Vehicle action ["UseWeapon", _Vehicle, (driver _Vehicle), 5];
+	_Vehicle action ["UseWeapon", _Vehicle, (driver _Vehicle), 0];
+	_Vehicle SetVariable ["LastSmoke",	time, true];
+	_Vehicle SetVariable ["LastSmokePos", _VehiclePos, true];
+};
 
-									If (!Isnil "_Commander1")exitWith	{
-																			["attempting to deploy smoke"] call Tally_fnc_debugMessage;
-																			
-																			_Vehicle action ["UseWeapon", _Vehicle, _Commander1, 	5];
-																			_Vehicle action ["UseWeapon", _Vehicle, _Commander1, 	0];
-																			_Vehicle action ["UseWeapon", _Vehicle, (driver _Vehicle), 5];
-																			_Vehicle action ["UseWeapon", _Vehicle, (driver _Vehicle), 0];
-																			_Vehicle SetVariable ["LastSmoke",	time, true];
-																			_Vehicle SetVariable ["LastSmokePos", _VehiclePos, true];
-																		};
-
-									If (!Isnil "_Commander2")exitWith	{
-																			["attempting to deploy smoke"] call Tally_fnc_debugMessage;
-																			
-																			_Vehicle action ["UseWeapon", _Vehicle, _Commander2, 5];
-																			_Vehicle action ["UseWeapon", _Vehicle, _Commander1, 0];
-																			_Vehicle SetVariable ["LastSmoke",	time, true];
-																			_Vehicle SetVariable ["LastSmokePos", _VehiclePos, true];
-																		};
-
-								};
+If(!Isnil "_Commander2")exitWith{
+	["attempting to deploy smoke"] call Tally_fnc_debugMessage;
+	
+	_Vehicle action ["UseWeapon", _Vehicle, _Commander2, 5];
+	_Vehicle action ["UseWeapon", _Vehicle, _Commander1, 0];
+	_Vehicle SetVariable ["LastSmoke",	time, true];
+	_Vehicle SetVariable ["LastSmokePos", _VehiclePos, true];
+	};
+};
